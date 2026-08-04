@@ -3,7 +3,13 @@ from __future__ import annotations
 from pathlib import Path
 
 from scripts.query_runtime_cards import query_cards
-from scripts.run_subject_concept_smoke import ConceptRegistryRow, RuntimeCardRow, build_runtime_card_index, normalize_concept_name
+from scripts.run_subject_concept_smoke import (
+    ConceptRegistryRow,
+    RuntimeCardRow,
+    build_runtime_card_index,
+    is_procedural_rule,
+    normalize_concept_name,
+)
 from src.ca_mem.embedding import HashingTextEmbedder
 from src.ca_mem.schemas import MemoryNode, Provenance, UsageSummary, bank_hash
 from src.smoke_test.io import read_jsonl, write_jsonl
@@ -66,3 +72,10 @@ def test_runtime_card_index_query(tmp_path: Path) -> None:
 
     result = query_cards(tmp_path, "price change quantity demanded elasticity", top_k=1)
     assert result["results"][0]["concept"] == "price elasticity of demand"
+
+
+def test_procedural_rule_detector_handles_proof_steps() -> None:
+    assert is_procedural_rule("Introduce the case split P or not-P for any proposition P.")
+    assert is_procedural_rule(
+        "If you assume not-not-P, combine that with excluded middle: if P, conclude P; if not-P, derive a contradiction."
+    )
