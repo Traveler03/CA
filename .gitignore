@@ -1,0 +1,30 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# Generated construction outputs
+runs/
+artifacts/
+logs/
+cache/
+
+# Local data and large indexes
+data/
+*.faiss
+*.npy
+*.npz
+*.parquet
+*.sqlite
+*.jsonl.curl.log
+
+# Secrets / local config
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+id_ed25519*

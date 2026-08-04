@@ -1,0 +1,28 @@
+run:
+  output_dir: runs/smoke_001/wiki_clean
+  seed: 42
+
+wikipag:
+  service_url: http://127.0.0.1:8897
+  top_k_per_query: 8
+  retrieval_timeout_s: 120
+
+construction:
+  target_active_concepts: 20
+  max_articles: 30
+  max_passages: 24
+  max_seed_queries: 8
+  max_extraction_passages: 8
+  max_grounding_candidates: 30
+  grounding_top_k: 3
+  max_usage_concepts: 5
+  max_usage_jobs: 10
+  usage_retrieval_top_k: 8
+  final_materials_per_usage_job: 4
+
+model:
+  name: gpt-5.4
+  max_completion_tokens: 4096
+  concurrency: 4
+  max_retries: 2
+  timeout_s: 120
