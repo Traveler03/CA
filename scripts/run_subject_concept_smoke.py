@@ -1266,6 +1266,7 @@ Rules:
 - Do not write generic rules such as "understand the concept" or "identify relevant information".
 - Do not restate the definition as a rule unless it gives a concrete decision procedure.
 - Prefer if/then, calculate, compare, classify, or check style wording.
+- For descriptive concepts with no formula, still produce rules as classification, distinction, or diagnostic checks, e.g. "Classify as X if ...", "Distinguish X from Y by ...", or "Check whether ...".
 - Prefer central {pack.subject} / {pack.concept} use cases that would help ordinary course problems.
 - Do not use niche research, lab-method, medical, historical, or advanced subtopic evidence as a trigger/rule/pitfall unless the concept itself is that narrower subtopic.
 - A pitfall may be a conservative boundary derived from evidence about assumptions, exceptions, limitations, or related-concept differences.
@@ -1555,15 +1556,25 @@ async def verify_claims_with_llm(
 
 PROCEDURAL_TERMS = {
     "calculate",
+    "categorize",
     "compute",
     "divide",
     "compare",
     "classify",
+    "describe",
+    "diagnose",
+    "distinguish",
     "greater",
     "less",
     "equal",
+    "expect",
+    "fill",
     "if",
+    "infer",
+    "locate",
+    "match",
     "then",
+    "predict",
     "slope",
     "ratio",
     "change",
@@ -1573,9 +1584,13 @@ PROCEDURAL_TERMS = {
     "line",
     "constraint",
     "check",
+    "choose",
     "identify",
+    "select",
+    "trace",
     "treat",
     "set",
+    "use",
 }
 
 
