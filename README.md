@@ -11,26 +11,29 @@
 ## 主流程
 
 ```text
-subject list
-  -> seed queries
+subject
+  -> subject profile
+  -> concept discovery queries
   -> Wikipag passage retrieval
   -> candidate concept extraction
   -> concept filtering + grounding
   -> same-concept merge
-  -> canonical concept registry
-  -> usage retrieval jobs
-  -> usage-card extraction
-  -> evidence-claim verification
-  -> one CA-Mem concept card per subject+concept
+  -> concept registry
+  -> evidence pack per concept
+  -> compact slot extraction
+  -> slot evidence verification
+  -> one runtime card per subject+concept
+  -> runtime card embedding index
 ```
 
 ## 关键脚本
 
 - `scripts/wiki_faiss/serve_sherlock_wiki.py`：启动本地 Wiki FAISS 检索服务。
-- `scripts/run_subject_concept_smoke.py`：单 subject 的 concept/card 构建。
+- `scripts/run_subject_concept_smoke.py`：单 subject 的 compact runtime card 构建。
 - `scripts/run_usage_bank_batch.py`：多 subject 顺序批处理。
 - `scripts/combine_clean_shards.py`：合并多个 wiki-clean shard。
-- `scripts/export_concept_cards_to_ca_mem_bank.py`：把 `usage_cards.jsonl` 聚合成一 concept 一张 CA-Mem card。
+- `scripts/query_runtime_cards.py`：按题目/查询文本检索 top-k runtime cards。
+- `scripts/export_concept_cards_to_ca_mem_bank.py`：把 `runtime_cards.jsonl` 转成 CA-Mem bank。
 - `scripts/rebuild_ca_mem_index_sentence_transformers.py`：用本地 SentenceTransformer/Qwen embedding 重建运行时索引。
 
 ## 最小运行示例
@@ -52,20 +55,27 @@ python scripts/run_subject_concept_smoke.py \
   --category social_sciences \
   --output-dir runs/smoke_001/high_school_microeconomics \
   --target-active-concepts 20 \
-  --max-passages 24 \
-  --max-usage-concepts 5 \
-  --max-usage-jobs 10 \
+  --max-passages 32 \
+  --max-card-concepts 10 \
   --concurrency 4
 ```
 
-导出一 concept 一张卡：
+检索 runtime cards：
+
+```bash
+python scripts/query_runtime_cards.py \
+  "price change quantity demanded elasticity" \
+  --index-dir runs/smoke_001/high_school_microeconomics \
+  --top-k 5
+```
+
+导出到 CA-Mem：
 
 ```bash
 python scripts/export_concept_cards_to_ca_mem_bank.py \
   --source-dir runs/smoke_001/high_school_microeconomics \
   --output-dir runs/smoke_001/high_school_microeconomics_ca_mem \
-  --runtime-unified \
-  --group-by-concept-name
+  --runtime-unified
 ```
 
 ## 主要输出
@@ -74,12 +84,13 @@ python scripts/export_concept_cards_to_ca_mem_bank.py \
 
 - `concept_registry.jsonl`
 - `concept_evidence.jsonl`
-- `concept_relations.jsonl`
-- `usage_jobs.jsonl`
-- `usage_materials.jsonl`
-- `usage_cards.jsonl`
-- `usage_card_claims.jsonl`
-- `usage_index.jsonl`
+- `evidence_packs.jsonl`
+- `runtime_cards.raw.jsonl`
+- `runtime_card_claims.jsonl`
+- `runtime_cards.jsonl`
+- `runtime_card_index.jsonl`
+- `runtime_card_index.npy`
+- `runtime_card_index_meta.json`
 - `bank_manifest.json`
 - `summary.json`
 

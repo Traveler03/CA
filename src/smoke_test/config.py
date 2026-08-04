@@ -21,16 +21,15 @@ class WikipagConfig(BaseModel):
 
 class ConstructionConfig(BaseModel):
     target_active_concepts: int = Field(default=20, ge=1)
-    max_articles: int = Field(default=30, ge=1)
-    max_passages: int = Field(default=24, ge=1)
-    max_seed_queries: int = Field(default=8, ge=1)
-    max_extraction_passages: int = Field(default=8, ge=1)
-    max_grounding_candidates: int = Field(default=30, ge=1)
-    grounding_top_k: int = Field(default=3, ge=1)
-    max_usage_concepts: int = Field(default=5, ge=1)
-    max_usage_jobs: int = Field(default=10, ge=1)
-    usage_retrieval_top_k: int = Field(default=8, ge=1)
-    final_materials_per_usage_job: int = Field(default=4, ge=1)
+    max_topic_anchors: int = Field(default=12, ge=1)
+    max_concept_queries: int = Field(default=24, ge=1)
+    max_passages: int = Field(default=32, ge=1)
+    max_extraction_passages: int = Field(default=10, ge=1)
+    max_grounding_candidates: int = Field(default=40, ge=1)
+    grounding_top_k: int = Field(default=4, ge=1)
+    evidence_top_k: int = Field(default=6, ge=1)
+    max_evidence_items_per_slot: int = Field(default=2, ge=1)
+    max_card_concepts: int = Field(default=10, ge=1)
 
 
 class ModelConfig(BaseModel):

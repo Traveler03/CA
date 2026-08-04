@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
-import shutil
 import sys
 from collections import Counter
 from datetime import datetime, timezone
@@ -15,6 +14,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from scripts.run_subject_concept_smoke import run_pipeline
+from src.ca_mem.embedding import HashingTextEmbedder
 from src.smoke_test.io import read_jsonl, write_jsonl
 
 
@@ -32,13 +32,20 @@ DEFAULT_SUBJECTS = [
 ]
 
 COMBINED_JSONL_FILES = [
+    "subject_profile.jsonl",
+    "concept_queries.jsonl",
+    "concept_passages.jsonl",
+    "candidate_concepts.jsonl",
     "concept_registry.jsonl",
-    "concept_relations.jsonl",
-    "usage_cards.jsonl",
-    "usage_card_claims.jsonl",
-    "rejected_items.jsonl",
+    "concept_evidence.jsonl",
+    "merge_redirects.jsonl",
+    "evidence_packs.jsonl",
+    "runtime_cards.raw.jsonl",
+    "runtime_card_claims.jsonl",
+    "runtime_cards.jsonl",
+    "runtime_card_index.jsonl",
     "build_events.jsonl",
-    "usage_index.jsonl",
+    "rejected_items.jsonl",
 ]
 
 
@@ -73,22 +80,16 @@ def build_subject_args(args: argparse.Namespace, subject: str, subject_dir: Path
         subject_source_jsonl=args.subject_source_jsonl,
         output_dir=str(subject_dir),
         target_active_concepts=args.target_active_concepts,
-        max_articles=args.max_articles,
+        max_topic_anchors=args.max_topic_anchors,
+        max_concept_queries=args.max_concept_queries,
         max_passages=args.max_passages,
-        max_seed_queries=args.max_seed_queries,
         top_k_per_query=args.top_k_per_query,
         max_extraction_passages=args.max_extraction_passages,
         max_grounding_candidates=args.max_grounding_candidates,
         grounding_top_k=args.grounding_top_k,
-        skip_llm_pair_judge=args.skip_llm_pair_judge,
-        max_pair_judge_pairs=args.max_pair_judge_pairs,
-        max_usage_concepts=args.max_usage_concepts,
-        max_usage_jobs=args.max_usage_jobs,
-        usage_retrieval_top_k=args.usage_retrieval_top_k,
-        final_materials_per_usage_job=args.final_materials_per_usage_job,
-        index_top_k=args.index_top_k,
-        skip_faiss_usage_index=args.skip_faiss_usage_index,
-        embedding_timeout_s=args.embedding_timeout_s,
+        evidence_top_k=args.evidence_top_k,
+        max_evidence_items_per_slot=args.max_evidence_items_per_slot,
+        max_card_concepts=args.max_card_concepts,
         bank_version=args.bank_version,
         wikipag_service_url=args.wikipag_service_url,
         retrieval_timeout_s=args.retrieval_timeout_s,
@@ -98,17 +99,6 @@ def build_subject_args(args: argparse.Namespace, subject: str, subject_dir: Path
         max_retries=args.max_retries,
         model_timeout_s=args.model_timeout_s,
     )
-
-
-def copy_usage_index_shard(subject_dir: Path, bank_dir: Path, subject: str) -> None:
-    src_dir = subject_dir / "usage_indexes" / subject
-    if not src_dir.exists():
-        return
-    dst_dir = bank_dir / "usage_indexes" / subject
-    dst_dir.mkdir(parents=True, exist_ok=True)
-    for path in src_dir.iterdir():
-        if path.is_file():
-            shutil.copy2(path, dst_dir / path.name)
 
 
 def combine_outputs(bank_dir: Path, subject_dirs: list[tuple[str, Path]]) -> dict[str, Any]:
@@ -138,8 +128,33 @@ def combine_outputs(bank_dir: Path, subject_dirs: list[tuple[str, Path]]) -> dic
     except Exception as exc:
         (bank_dir / "evidence_sections.error.txt").write_text(f"{type(exc).__name__}: {exc}\n", encoding="utf-8")
 
-    for subject, subject_dir in subject_dirs:
-        copy_usage_index_shard(subject_dir, bank_dir, subject)
+    index_path = bank_dir / "runtime_card_index.jsonl"
+    if index_path.exists():
+        rows = list(read_jsonl(index_path))
+        embedder = HashingTextEmbedder()
+        matrix = embedder.embed([str(row.get("index_text") or "") for row in rows])
+        import numpy as np
+
+        np.save(bank_dir / "runtime_card_index.npy", matrix)
+        (bank_dir / "runtime_card_index_meta.json").write_text(
+            json.dumps(
+                {
+                    "index_type": "numpy_dense_matrix",
+                    "metric": "cosine_on_normalized_embeddings",
+                    "embedding_backend": "hash",
+                    "embedding_model": embedder.model_name,
+                    "dimension": int(matrix.shape[1]) if matrix.ndim == 2 else embedder.dim,
+                    "count": len(rows),
+                    "matrix_path": str(bank_dir / "runtime_card_index.npy"),
+                    "ids_path": str(index_path),
+                },
+                ensure_ascii=False,
+                indent=2,
+                sort_keys=True,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
 
     return combined_counts
 
@@ -157,9 +172,10 @@ def build_bank_manifest(
             "active_concept_count",
             "concept_count",
             "active_card_count",
-            "usage_claim_count",
-            "usage_index_count",
-            "usage_faiss_index_count",
+            "runtime_card_count",
+            "runtime_card_claim_count",
+            "runtime_card_index_count",
+            "evidence_pack_count",
             "evidence_section_count",
             "rejected_item_count",
             "model_network_calls",
@@ -174,18 +190,19 @@ def build_bank_manifest(
         "concept_count": totals["concept_count"],
         "active_concept_count": totals["active_concept_count"],
         "active_card_count": totals["active_card_count"],
-        "usage_claim_count": totals["usage_claim_count"],
-        "usage_index_count": totals["usage_index_count"],
-        "usage_faiss_index_count": totals["usage_faiss_index_count"],
+        "runtime_card_count": combined_counts.get("runtime_cards.jsonl", 0),
+        "runtime_card_claim_count": combined_counts.get("runtime_card_claims.jsonl", 0),
+        "runtime_card_index_count": combined_counts.get("runtime_card_index.jsonl", 0),
+        "evidence_pack_count": combined_counts.get("evidence_packs.jsonl", 0),
         "evidence_section_count": totals["evidence_section_count"],
         "rejected_item_count": totals["rejected_item_count"],
         "model_network_calls": totals["model_network_calls"],
         "construction_model": args.model,
-        "embedding_model": "Qwen3-Embedding-4B for local Wikipag retrieval",
-        "top_k": args.index_top_k,
-        "similarity_gate": False,
+        "pipeline_version": "wiki_compact_card_v1",
+        "embedding_model": "deterministic-hashing-embedding for runtime card index",
         "construction_cutoff": datetime.now(timezone.utc).isoformat(),
         "source_corpus_only": True,
+        "one_card_per_subject_concept": True,
         "combined_counts": combined_counts,
         "shard_root": "subjects",
     }
@@ -239,9 +256,9 @@ async def run_batch(args: argparse.Namespace) -> dict[str, Any]:
                 "active_concept_count": manifest["active_concept_count"],
                 "concept_count": manifest["concept_count"],
                 "active_card_count": manifest["active_card_count"],
-                "usage_claim_count": manifest["usage_claim_count"],
-                "usage_index_count": manifest["usage_index_count"],
-                "usage_faiss_index_count": manifest["usage_faiss_index_count"],
+                "runtime_card_count": manifest["runtime_card_count"],
+                "runtime_card_claim_count": manifest["runtime_card_claim_count"],
+                "runtime_card_index_count": manifest["runtime_card_index_count"],
                 "model_network_calls": manifest["model_network_calls"],
                 "source_corpus_only": True,
             },
@@ -260,30 +277,24 @@ async def run_batch(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Run a sequential subject queue for Usage Bank construction.")
-    parser.add_argument("--output-dir", default="runs/smoke_001/usage_bank_batch_smoke_gpt54")
+    parser = argparse.ArgumentParser(description="Run a sequential subject queue for Wiki compact-card construction.")
+    parser.add_argument("--output-dir", default="runs/smoke_001/wiki_compact_card_batch_smoke")
     parser.add_argument("--subject-source-jsonl", default="data/subject_source/en_subjects.jsonl")
     parser.add_argument("--preset", choices=["bank-s", "all"], default="bank-s")
     parser.add_argument("--subjects", nargs="+", default=None)
     parser.add_argument("--max-subjects", type=int, default=0)
     parser.add_argument("--target-active-concepts", type=int, default=20)
-    parser.add_argument("--max-articles", type=int, default=30)
-    parser.add_argument("--max-passages", type=int, default=24)
-    parser.add_argument("--max-seed-queries", type=int, default=8)
+    parser.add_argument("--max-topic-anchors", type=int, default=12)
+    parser.add_argument("--max-concept-queries", type=int, default=24)
+    parser.add_argument("--max-passages", type=int, default=32)
     parser.add_argument("--top-k-per-query", type=int, default=8)
-    parser.add_argument("--max-extraction-passages", type=int, default=8)
-    parser.add_argument("--max-grounding-candidates", type=int, default=30)
-    parser.add_argument("--grounding-top-k", type=int, default=3)
-    parser.add_argument("--skip-llm-pair-judge", action="store_true")
-    parser.add_argument("--max-pair-judge-pairs", type=int, default=40)
-    parser.add_argument("--max-usage-concepts", type=int, default=5)
-    parser.add_argument("--max-usage-jobs", type=int, default=10)
-    parser.add_argument("--usage-retrieval-top-k", type=int, default=8)
-    parser.add_argument("--final-materials-per-usage-job", type=int, default=4)
-    parser.add_argument("--index-top-k", type=int, default=3)
-    parser.add_argument("--skip-faiss-usage-index", action="store_true")
-    parser.add_argument("--embedding-timeout-s", type=float, default=120.0)
-    parser.add_argument("--bank-version", default="bank-smoke-gpt54-v0.1")
+    parser.add_argument("--max-extraction-passages", type=int, default=10)
+    parser.add_argument("--max-grounding-candidates", type=int, default=40)
+    parser.add_argument("--grounding-top-k", type=int, default=4)
+    parser.add_argument("--evidence-top-k", type=int, default=6)
+    parser.add_argument("--max-evidence-items-per-slot", type=int, default=2)
+    parser.add_argument("--max-card-concepts", type=int, default=10)
+    parser.add_argument("--bank-version", default="wiki-compact-card-batch-v0.1")
     parser.add_argument("--wikipag-service-url", default="http://127.0.0.1:8897")
     parser.add_argument("--retrieval-timeout-s", type=float, default=120.0)
     parser.add_argument("--model", default="gpt-5.4")

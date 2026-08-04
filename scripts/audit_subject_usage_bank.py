@@ -8,19 +8,26 @@ from typing import Any
 
 
 REQUIRED_FILES = [
+    "subject_profile.jsonl",
+    "concept_queries.jsonl",
+    "concept_passages.jsonl",
+    "candidate_concepts.jsonl",
     "concept_registry.jsonl",
-    "concept_relations.jsonl",
+    "concept_evidence.jsonl",
+    "evidence_packs.jsonl",
+    "runtime_cards.raw.jsonl",
+    "runtime_card_claims.jsonl",
+    "runtime_cards.jsonl",
+    "runtime_card_index.jsonl",
+    "runtime_card_index.npy",
+    "runtime_card_index_meta.json",
     "evidence_sections.parquet",
-    "usage_cards.jsonl",
-    "usage_card_claims.jsonl",
-    "usage_index.jsonl",
     "build_events.jsonl",
     "rejected_items.jsonl",
     "bank_manifest.json",
     "summary.json",
 ]
 ALLOW_EMPTY_FILES = {
-    "concept_relations.jsonl",
     "rejected_items.jsonl",
 }
 
@@ -87,12 +94,6 @@ def audit(root: Path, *, expected_model: str) -> dict[str, Any]:
 
     summary = read_json(root / "summary.json") if (root / "summary.json").exists() else {}
     manifest = read_json(root / "bank_manifest.json") if (root / "bank_manifest.json").exists() else {}
-    subject_ids = [str(item) for item in (manifest.get("subject_ids") or [summary.get("subject")]) if item]
-    usage_index_dirs = [root / "usage_indexes" / subject for subject in subject_ids]
-    for usage_index_dir in usage_index_dirs:
-        for rel in ["usage_index.jsonl", "usage_index.faiss", "usage_index_ids.jsonl", "usage_index_meta.json"]:
-            assert_file(usage_index_dir / rel, errors)
-
     if manifest.get("construction_model") != expected_model:
         errors.append(f"construction_model mismatch: {manifest.get('construction_model')} != {expected_model}")
     if summary.get("model") != expected_model:
@@ -107,46 +108,39 @@ def audit(root: Path, *, expected_model: str) -> dict[str, Any]:
     scan_forbidden_model_strings(root, errors)
 
     concept_rows = read_jsonl(root / "concept_registry.jsonl") if (root / "concept_registry.jsonl").exists() else []
-    usage_rows = read_jsonl(root / "usage_cards.jsonl") if (root / "usage_cards.jsonl").exists() else []
-    claim_rows = read_jsonl(root / "usage_card_claims.jsonl") if (root / "usage_card_claims.jsonl").exists() else []
-    index_rows = read_jsonl(root / "usage_index.jsonl") if (root / "usage_index.jsonl").exists() else []
+    runtime_rows = read_jsonl(root / "runtime_cards.jsonl") if (root / "runtime_cards.jsonl").exists() else []
+    claim_rows = read_jsonl(root / "runtime_card_claims.jsonl") if (root / "runtime_card_claims.jsonl").exists() else []
+    index_rows = read_jsonl(root / "runtime_card_index.jsonl") if (root / "runtime_card_index.jsonl").exists() else []
     for file_name, rows in [
         ("concept_registry.jsonl", concept_rows),
-        ("usage_cards.jsonl", usage_rows),
-        ("usage_card_claims.jsonl", claim_rows),
-        ("usage_index.jsonl", index_rows),
+        ("runtime_cards.jsonl", runtime_rows),
+        ("runtime_card_claims.jsonl", claim_rows),
+        ("runtime_card_index.jsonl", index_rows),
     ]:
         check_no_assessment_artifact_keys(rows, file_name, errors)
 
-    active_usage_ids = {row.get("usage_id") for row in usage_rows if row.get("status") == "active"}
+    active_card_ids = {row.get("card_id") for row in runtime_rows if row.get("status") == "active"}
     rejected_core = [
         row
         for row in claim_rows
-        if row.get("usage_id") in active_usage_ids
-        and row.get("field") in {"concept_boundary", "decision_procedure", "trigger_conditions", "verification_rules"}
+        if row.get("card_id") in active_card_ids
+        and row.get("slot") in {"definition", "trigger", "rule"}
         and row.get("decision") == "REJECT"
     ]
     if rejected_core:
         errors.append(f"active cards have rejected core claims: {len(rejected_core)}")
 
-    for usage_index_dir in usage_index_dirs:
-        if not usage_index_dir.exists() or not (usage_index_dir / "usage_index.faiss").exists():
-            continue
-        try:
-            import faiss
+    try:
+        import numpy as np
 
-            index = faiss.read_index(str(usage_index_dir / "usage_index.faiss"))
-            ids = read_jsonl(usage_index_dir / "usage_index_ids.jsonl")
-            meta = read_json(usage_index_dir / "usage_index_meta.json")
-            if int(index.ntotal) != len(ids):
-                errors.append(f"faiss ntotal {index.ntotal} != ids {len(ids)}")
-            subject_rows = [row for row in index_rows if row.get("subject") == usage_index_dir.name]
-            if int(index.ntotal) != len(subject_rows):
-                errors.append(f"{usage_index_dir.name}: faiss ntotal {index.ntotal} != usage_index rows {len(subject_rows)}")
-            if int(meta.get("count") or -1) != len(subject_rows):
-                errors.append(f"{usage_index_dir.name}: usage_index_meta count {meta.get('count')} != usage_index rows {len(subject_rows)}")
-        except Exception as exc:
-            errors.append(f"failed to read FAISS usage index {usage_index_dir}: {type(exc).__name__}: {exc}")
+        matrix = np.load(root / "runtime_card_index.npy")
+        meta = read_json(root / "runtime_card_index_meta.json")
+        if int(matrix.shape[0]) != len(index_rows):
+            errors.append(f"runtime_card_index rows {matrix.shape[0]} != ids {len(index_rows)}")
+        if int(meta.get("count") or -1) != len(index_rows):
+            errors.append(f"runtime_card_index_meta count {meta.get('count')} != rows {len(index_rows)}")
+    except Exception as exc:
+        errors.append(f"failed to read runtime card index: {type(exc).__name__}: {exc}")
 
     if (root / "evidence_sections.parquet").exists():
         try:
@@ -166,8 +160,8 @@ def audit(root: Path, *, expected_model: str) -> dict[str, Any]:
             "model": summary.get("model"),
             "active_concept_count": summary.get("active_concept_count"),
             "active_card_count": summary.get("active_card_count"),
-            "usage_index_count": summary.get("usage_index_count"),
-            "usage_faiss_index_count": summary.get("usage_faiss_index_count"),
+            "runtime_card_count": summary.get("runtime_card_count"),
+            "runtime_card_index_count": summary.get("runtime_card_index_count"),
             "source_corpus_only": manifest.get("source_corpus_only"),
         },
     }

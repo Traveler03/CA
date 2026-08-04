@@ -13,18 +13,23 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from src.ca_mem.embedding import HashingTextEmbedder
 from src.smoke_test.io import read_jsonl, write_jsonl
 
 
 JSONL_FILES = [
+    "subject_profile.jsonl",
+    "concept_queries.jsonl",
+    "concept_passages.jsonl",
+    "candidate_concepts.jsonl",
     "concept_registry.jsonl",
-    "concept_relations.jsonl",
     "concept_evidence.jsonl",
-    "concept_index.jsonl",
-    "usage_cards.jsonl",
-    "usage_card_claims.jsonl",
-    "usage_index.jsonl",
-    "usage_consolidation.jsonl",
+    "merge_redirects.jsonl",
+    "evidence_packs.jsonl",
+    "runtime_cards.raw.jsonl",
+    "runtime_card_claims.jsonl",
+    "runtime_cards.jsonl",
+    "runtime_card_index.jsonl",
     "build_events.jsonl",
     "rejected_items.jsonl",
 ]
@@ -34,9 +39,10 @@ COUNT_KEYS = [
     "concept_count",
     "active_concept_count",
     "active_card_count",
-    "usage_claim_count",
-    "usage_index_count",
-    "usage_faiss_index_count",
+    "runtime_card_count",
+    "runtime_card_claim_count",
+    "runtime_card_index_count",
+    "evidence_pack_count",
     "evidence_section_count",
     "rejected_item_count",
     "model_network_calls",
@@ -86,17 +92,30 @@ def copy_component_manifests(output_dir: Path, shard_dirs: list[Path]) -> list[d
     return manifests
 
 
-def copy_usage_indexes(output_dir: Path, shard_dirs: list[Path]) -> None:
-    dst_root = output_dir / "usage_indexes"
-    for shard in shard_dirs:
-        src_root = shard / "usage_indexes"
-        if not src_root.exists():
-            continue
-        for subject_dir in src_root.iterdir():
-            if not subject_dir.is_dir():
-                continue
-            dst = dst_root / subject_dir.name
-            shutil.copytree(subject_dir, dst, dirs_exist_ok=True)
+def rebuild_runtime_card_index(output_dir: Path) -> dict[str, Any]:
+    index_path = output_dir / "runtime_card_index.jsonl"
+    rows = list(read_jsonl(index_path)) if index_path.exists() else []
+    embedder = HashingTextEmbedder()
+    matrix = embedder.embed([str(row.get("index_text") or "") for row in rows])
+    import numpy as np
+
+    matrix_path = output_dir / "runtime_card_index.npy"
+    np.save(matrix_path, matrix)
+    meta = {
+        "index_type": "numpy_dense_matrix",
+        "metric": "cosine_on_normalized_embeddings",
+        "embedding_backend": "hash",
+        "embedding_model": embedder.model_name,
+        "dimension": int(matrix.shape[1]) if matrix.ndim == 2 else embedder.dim,
+        "count": len(rows),
+        "matrix_path": str(matrix_path),
+        "ids_path": str(index_path),
+    }
+    (output_dir / "runtime_card_index_meta.json").write_text(
+        json.dumps(meta, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    return meta
 
 
 def combine_evidence_sections(output_dir: Path, shard_dirs: list[Path]) -> None:
@@ -153,16 +172,18 @@ def build_manifest(
         "shards": [{"source_dir": str(path), "subjects": len(manifest.get("subject_ids", []))} for path, manifest in zip(shard_dirs, shard_manifests)],
         "concept_count": combined_counts.get("concept_registry.jsonl", 0),
         "active_concept_count": totals["active_concept_count"],
-        "active_card_count": combined_counts.get("usage_cards.jsonl", 0),
-        "usage_claim_count": combined_counts.get("usage_card_claims.jsonl", 0),
-        "usage_index_count": combined_counts.get("usage_index.jsonl", 0),
-        "usage_faiss_index_count": totals["usage_faiss_index_count"],
+        "active_card_count": combined_counts.get("runtime_cards.jsonl", 0),
+        "runtime_card_count": combined_counts.get("runtime_cards.jsonl", 0),
+        "runtime_card_claim_count": combined_counts.get("runtime_card_claims.jsonl", 0),
+        "runtime_card_index_count": combined_counts.get("runtime_card_index.jsonl", 0),
+        "evidence_pack_count": combined_counts.get("evidence_packs.jsonl", 0),
         "evidence_section_count": totals["evidence_section_count"],
         "rejected_item_count": combined_counts.get("rejected_items.jsonl", 0),
         "model_network_calls": totals["model_network_calls"],
         "combined_counts": combined_counts,
         "construction_cutoff": datetime.now(timezone.utc).isoformat(),
         "source_corpus_only": True,
+        "one_card_per_subject_concept": True,
     }
 
 
@@ -176,14 +197,15 @@ def combine(args: argparse.Namespace) -> dict[str, Any]:
 
     combined_counts = combine_jsonl(output_dir, shard_dirs)
     shard_manifests = copy_component_manifests(output_dir, shard_dirs)
-    copy_usage_indexes(output_dir, shard_dirs)
     combine_evidence_sections(output_dir, shard_dirs)
+    runtime_index_meta = rebuild_runtime_card_index(output_dir)
     manifest = build_manifest(
         bank_version=args.bank_version,
         shard_dirs=shard_dirs,
         shard_manifests=shard_manifests,
         combined_counts=combined_counts,
     )
+    manifest["runtime_card_index"] = runtime_index_meta
     (output_dir / "bank_manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
@@ -197,6 +219,7 @@ def combine(args: argparse.Namespace) -> dict[str, Any]:
                 "subjects": manifest["subjects"],
                 "active_concept_count": manifest["active_concept_count"],
                 "active_card_count": manifest["active_card_count"],
+                "runtime_card_index_count": manifest["runtime_card_index_count"],
                 "source_corpus_only": True,
                 "duplicate_subject_ids": manifest["duplicate_subject_ids"],
             },
