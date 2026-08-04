@@ -13,7 +13,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from scripts.run_subject_concept_smoke import run_pipeline
+from scripts.run_subject_concept_smoke import embed_texts_with_wikipag_service, run_pipeline
 from src.ca_mem.embedding import HashingTextEmbedder
 from src.smoke_test.io import read_jsonl, write_jsonl
 
@@ -42,6 +42,7 @@ COMBINED_JSONL_FILES = [
     "evidence_packs.jsonl",
     "runtime_cards.raw.jsonl",
     "runtime_card_claims.jsonl",
+    "runtime_card_quality.jsonl",
     "runtime_cards.jsonl",
     "runtime_card_index.jsonl",
     "build_events.jsonl",
@@ -98,10 +99,63 @@ def build_subject_args(args: argparse.Namespace, subject: str, subject_dir: Path
         concurrency=args.concurrency,
         max_retries=args.max_retries,
         model_timeout_s=args.model_timeout_s,
+        skip_llm_profile=args.skip_llm_profile,
+        skip_llm_verifier=args.skip_llm_verifier,
+        min_card_quality_score=args.min_card_quality_score,
+        card_index_backend=args.card_index_backend,
+        embedding_timeout_s=args.embedding_timeout_s,
     )
 
 
-def combine_outputs(bank_dir: Path, subject_dirs: list[tuple[str, Path]]) -> dict[str, Any]:
+def rebuild_combined_runtime_card_index(
+    bank_dir: Path,
+    *,
+    backend: str,
+    service_url: str,
+    timeout_s: float,
+) -> dict[str, Any]:
+    index_path = bank_dir / "runtime_card_index.jsonl"
+    rows = list(read_jsonl(index_path)) if index_path.exists() else []
+    texts = [str(row.get("index_text") or "") for row in rows]
+    if backend == "wikipag":
+        matrix, dimension = embed_texts_with_wikipag_service(texts, service_url=service_url, timeout_s=timeout_s)
+        embedding_backend = "wikipag_service"
+        embedding_model = "Qwen3-Embedding-4B"
+    else:
+        embedder = HashingTextEmbedder()
+        matrix = embedder.embed(texts)
+        dimension = int(matrix.shape[1]) if matrix.ndim == 2 else embedder.dim
+        embedding_backend = "hash"
+        embedding_model = embedder.model_name
+    import numpy as np
+
+    np.save(bank_dir / "runtime_card_index.npy", matrix)
+    meta = {
+        "index_type": "numpy_dense_matrix",
+        "metric": "cosine_on_normalized_embeddings",
+        "embedding_backend": embedding_backend,
+        "embedding_model": embedding_model,
+        "embedding_service_url": service_url if backend == "wikipag" else None,
+        "dimension": dimension,
+        "count": len(rows),
+        "matrix_path": str(bank_dir / "runtime_card_index.npy"),
+        "ids_path": str(index_path),
+    }
+    (bank_dir / "runtime_card_index_meta.json").write_text(
+        json.dumps(meta, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    return meta
+
+
+def combine_outputs(
+    bank_dir: Path,
+    subject_dirs: list[tuple[str, Path]],
+    *,
+    card_index_backend: str,
+    service_url: str,
+    embedding_timeout_s: float,
+) -> tuple[dict[str, Any], dict[str, Any]]:
     combined_counts: dict[str, int] = {}
     for file_name in COMBINED_JSONL_FILES:
         rows: list[dict[str, Any]] = []
@@ -128,35 +182,13 @@ def combine_outputs(bank_dir: Path, subject_dirs: list[tuple[str, Path]]) -> dic
     except Exception as exc:
         (bank_dir / "evidence_sections.error.txt").write_text(f"{type(exc).__name__}: {exc}\n", encoding="utf-8")
 
-    index_path = bank_dir / "runtime_card_index.jsonl"
-    if index_path.exists():
-        rows = list(read_jsonl(index_path))
-        embedder = HashingTextEmbedder()
-        matrix = embedder.embed([str(row.get("index_text") or "") for row in rows])
-        import numpy as np
-
-        np.save(bank_dir / "runtime_card_index.npy", matrix)
-        (bank_dir / "runtime_card_index_meta.json").write_text(
-            json.dumps(
-                {
-                    "index_type": "numpy_dense_matrix",
-                    "metric": "cosine_on_normalized_embeddings",
-                    "embedding_backend": "hash",
-                    "embedding_model": embedder.model_name,
-                    "dimension": int(matrix.shape[1]) if matrix.ndim == 2 else embedder.dim,
-                    "count": len(rows),
-                    "matrix_path": str(bank_dir / "runtime_card_index.npy"),
-                    "ids_path": str(index_path),
-                },
-                ensure_ascii=False,
-                indent=2,
-                sort_keys=True,
-            )
-            + "\n",
-            encoding="utf-8",
-        )
-
-    return combined_counts
+    index_meta = rebuild_combined_runtime_card_index(
+        bank_dir,
+        backend=card_index_backend,
+        service_url=service_url,
+        timeout_s=embedding_timeout_s,
+    )
+    return combined_counts, index_meta
 
 
 def build_bank_manifest(
@@ -165,6 +197,7 @@ def build_bank_manifest(
     subjects: list[str],
     subject_summaries: list[dict[str, Any]],
     combined_counts: dict[str, int],
+    runtime_index_meta: dict[str, Any],
 ) -> dict[str, Any]:
     totals = Counter()
     for summary in subject_summaries:
@@ -176,6 +209,7 @@ def build_bank_manifest(
             "runtime_card_claim_count",
             "runtime_card_index_count",
             "evidence_pack_count",
+            "avg_card_quality_score",
             "evidence_section_count",
             "rejected_item_count",
             "model_network_calls",
@@ -192,14 +226,23 @@ def build_bank_manifest(
         "active_card_count": totals["active_card_count"],
         "runtime_card_count": combined_counts.get("runtime_cards.jsonl", 0),
         "runtime_card_claim_count": combined_counts.get("runtime_card_claims.jsonl", 0),
+        "runtime_card_quality_count": combined_counts.get("runtime_card_quality.jsonl", 0),
         "runtime_card_index_count": combined_counts.get("runtime_card_index.jsonl", 0),
         "evidence_pack_count": combined_counts.get("evidence_packs.jsonl", 0),
+        "avg_card_quality_score": (
+            sum(float(summary.get("avg_card_quality_score") or 0.0) for summary in subject_summaries)
+            / len(subject_summaries)
+            if subject_summaries
+            else 0.0
+        ),
+        "min_card_quality_score": args.min_card_quality_score,
         "evidence_section_count": totals["evidence_section_count"],
         "rejected_item_count": totals["rejected_item_count"],
         "model_network_calls": totals["model_network_calls"],
         "construction_model": args.model,
         "pipeline_version": "wiki_compact_card_v1",
-        "embedding_model": "deterministic-hashing-embedding for runtime card index",
+        "embedding_model": runtime_index_meta.get("embedding_model"),
+        "runtime_card_index": runtime_index_meta,
         "construction_cutoff": datetime.now(timezone.utc).isoformat(),
         "source_corpus_only": True,
         "one_card_per_subject_concept": True,
@@ -241,8 +284,20 @@ async def run_batch(args: argparse.Namespace) -> dict[str, Any]:
             ],
         )
 
-    combined_counts = combine_outputs(bank_dir, subject_dirs)
-    manifest = build_bank_manifest(args, subjects=subjects, subject_summaries=subject_summaries, combined_counts=combined_counts)
+    combined_counts, runtime_index_meta = combine_outputs(
+        bank_dir,
+        subject_dirs,
+        card_index_backend=args.card_index_backend,
+        service_url=args.wikipag_service_url,
+        embedding_timeout_s=args.embedding_timeout_s,
+    )
+    manifest = build_bank_manifest(
+        args,
+        subjects=subjects,
+        subject_summaries=subject_summaries,
+        combined_counts=combined_counts,
+        runtime_index_meta=runtime_index_meta,
+    )
     (bank_dir / "bank_manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
@@ -258,6 +313,7 @@ async def run_batch(args: argparse.Namespace) -> dict[str, Any]:
                 "active_card_count": manifest["active_card_count"],
                 "runtime_card_count": manifest["runtime_card_count"],
                 "runtime_card_claim_count": manifest["runtime_card_claim_count"],
+                "runtime_card_quality_count": manifest["runtime_card_quality_count"],
                 "runtime_card_index_count": manifest["runtime_card_index_count"],
                 "model_network_calls": manifest["model_network_calls"],
                 "source_corpus_only": True,
@@ -302,6 +358,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--concurrency", type=int, default=4)
     parser.add_argument("--max-retries", type=int, default=2)
     parser.add_argument("--model-timeout-s", type=float, default=120.0)
+    parser.add_argument("--skip-llm-profile", action="store_true")
+    parser.add_argument("--skip-llm-verifier", action="store_true")
+    parser.add_argument("--min-card-quality-score", type=float, default=0.72)
+    parser.add_argument("--card-index-backend", choices=["wikipag", "hash"], default="wikipag")
+    parser.add_argument("--embedding-timeout-s", type=float, default=120.0)
     parser.add_argument("--resume", action="store_true")
     args = parser.parse_args(argv)
     manifest = asyncio.run(run_batch(args))

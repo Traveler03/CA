@@ -30,6 +30,8 @@ class ConstructionConfig(BaseModel):
     evidence_top_k: int = Field(default=6, ge=1)
     max_evidence_items_per_slot: int = Field(default=2, ge=1)
     max_card_concepts: int = Field(default=10, ge=1)
+    min_card_quality_score: float = Field(default=0.72, ge=0.0, le=1.0)
+    card_index_backend: str = "wikipag"
 
 
 class ModelConfig(BaseModel):
@@ -41,6 +43,8 @@ class ModelConfig(BaseModel):
     max_retries: int = Field(default=2, ge=0, le=2)
     max_total_calls: int = Field(default=800, ge=0, le=800)
     cache_enabled: bool = True
+    skip_llm_profile: bool = False
+    skip_llm_verifier: bool = False
 
 
 class WikiCleanConfig(BaseModel):

@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -17,6 +18,7 @@ REQUIRED_FILES = [
     "evidence_packs.jsonl",
     "runtime_cards.raw.jsonl",
     "runtime_card_claims.jsonl",
+    "runtime_card_quality.jsonl",
     "runtime_cards.jsonl",
     "runtime_card_index.jsonl",
     "runtime_card_index.npy",
@@ -110,11 +112,13 @@ def audit(root: Path, *, expected_model: str) -> dict[str, Any]:
     concept_rows = read_jsonl(root / "concept_registry.jsonl") if (root / "concept_registry.jsonl").exists() else []
     runtime_rows = read_jsonl(root / "runtime_cards.jsonl") if (root / "runtime_cards.jsonl").exists() else []
     claim_rows = read_jsonl(root / "runtime_card_claims.jsonl") if (root / "runtime_card_claims.jsonl").exists() else []
+    quality_rows = read_jsonl(root / "runtime_card_quality.jsonl") if (root / "runtime_card_quality.jsonl").exists() else []
     index_rows = read_jsonl(root / "runtime_card_index.jsonl") if (root / "runtime_card_index.jsonl").exists() else []
     for file_name, rows in [
         ("concept_registry.jsonl", concept_rows),
         ("runtime_cards.jsonl", runtime_rows),
         ("runtime_card_claims.jsonl", claim_rows),
+        ("runtime_card_quality.jsonl", quality_rows),
         ("runtime_card_index.jsonl", index_rows),
     ]:
         check_no_assessment_artifact_keys(rows, file_name, errors)
@@ -129,6 +133,37 @@ def audit(root: Path, *, expected_model: str) -> dict[str, Any]:
     ]
     if rejected_core:
         errors.append(f"active cards have rejected core claims: {len(rejected_core)}")
+
+    active_quality_ids = {row.get("card_id") for row in quality_rows if row.get("status") == "active"}
+    active_runtime_ids = {row.get("card_id") for row in runtime_rows if row.get("status") == "active"}
+    if active_quality_ids != active_runtime_ids:
+        errors.append(f"active quality ids do not match runtime cards: quality={len(active_quality_ids)} runtime={len(active_runtime_ids)}")
+    active_subject_concepts = [(row.get("subject"), row.get("concept_id")) for row in runtime_rows if row.get("status") == "active"]
+    duplicate_subject_concepts = {key: count for key, count in Counter(active_subject_concepts).items() if count > 1}
+    if duplicate_subject_concepts:
+        errors.append(f"duplicate active runtime cards for subject+concept: {duplicate_subject_concepts}")
+    low_quality = [
+        row
+        for row in quality_rows
+        if row.get("status") == "active" and float(row.get("quality_score") or 0.0) < float(manifest.get("min_card_quality_score") or 0.0)
+    ]
+    if low_quality:
+        errors.append(f"active cards below min quality score: {len(low_quality)}")
+    missing_pitfall = [row for row in quality_rows if row.get("status") == "active" and int(row.get("pitfall_count") or 0) <= 0]
+    if missing_pitfall:
+        errors.append(f"active cards missing supported pitfall: {len(missing_pitfall)}")
+    weak_slots = [
+        row
+        for row in quality_rows
+        if row.get("status") == "active"
+        and (
+            int(row.get("trigger_count") or 0) < 2
+            or int(row.get("rule_count") or 0) < 2
+            or int(row.get("procedural_rule_count") or 0) < 2
+        )
+    ]
+    if weak_slots:
+        errors.append(f"active cards below slot-count quality gate: {len(weak_slots)}")
 
     try:
         import numpy as np
@@ -162,6 +197,7 @@ def audit(root: Path, *, expected_model: str) -> dict[str, Any]:
             "active_card_count": summary.get("active_card_count"),
             "runtime_card_count": summary.get("runtime_card_count"),
             "runtime_card_index_count": summary.get("runtime_card_index_count"),
+            "avg_card_quality_score": summary.get("avg_card_quality_score"),
             "source_corpus_only": manifest.get("source_corpus_only"),
         },
     }

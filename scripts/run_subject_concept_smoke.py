@@ -53,6 +53,13 @@ TOO_BROAD_NAMES = {
     "model",
 }
 
+SUBJECT_TOO_BROAD_NAMES: dict[str, set[str]] = {
+    # These are real words in the subject, but too broad to make one actionable
+    # runtime card. More specific concepts such as cell theory, cell cycle,
+    # organelle, allele, gene expression, etc. should survive instead.
+    "high_school_biology": {"cell", "organism", "life"},
+}
+
 CURATED_TOPIC_ANCHORS: dict[str, list[str]] = {
     "high_school_microeconomics": [
         "consumer theory",
@@ -112,6 +119,12 @@ class SubjectProfile(BaseModel):
     topic_anchors: list[str]
     excluded_scope: list[str]
     source: str
+
+
+class SubjectProfilePayload(BaseModel):
+    domain: str
+    topic_anchors: list[str] = Field(default_factory=list)
+    excluded_scope: list[str] = Field(default_factory=list)
 
 
 class ConceptQueryRow(BaseModel):
@@ -184,6 +197,7 @@ class EvidenceItem(BaseModel):
     retrieval_query: str
     retrieval_score: float
     rank: int
+    evidence_score: float = 0.0
 
 
 class ConceptRegistryRow(BaseModel):
@@ -263,6 +277,18 @@ class RuntimeCardClaimRow(BaseModel):
     reason: str
 
 
+class VerificationClaimDraft(BaseModel):
+    slot: SlotName
+    text: str
+    decision: str
+    source_ids: list[str] = Field(default_factory=list)
+    reason: str = ""
+
+
+class RuntimeCardVerificationPayload(BaseModel):
+    claims: list[VerificationClaimDraft] = Field(default_factory=list)
+
+
 class RuntimeCardRow(BaseModel):
     card_id: str
     subject: str
@@ -275,6 +301,22 @@ class RuntimeCardRow(BaseModel):
     source_ids: list[str] = Field(default_factory=list)
     status: str = "active"
     version: int = 1
+
+
+class RuntimeCardQualityRow(BaseModel):
+    card_id: str
+    concept_id: str
+    concept: str
+    definition_supported: bool
+    trigger_count: int
+    rule_count: int
+    pitfall_count: int
+    support_rate: float
+    evidence_source_count: int
+    procedural_rule_count: int
+    quality_score: float
+    status: str
+    reasons: list[str] = Field(default_factory=list)
 
 
 class RuntimeCardIndexRow(BaseModel):
@@ -367,6 +409,105 @@ def build_subject_profile(args: argparse.Namespace) -> SubjectProfile:
             "isolated examples without a general concept",
         ],
         source="curated" if curated else "subject_label_fallback",
+    )
+
+
+def subject_profile_prompt(profile: SubjectProfile, *, max_topic_anchors: int) -> list[dict[str, str]]:
+    return [
+        {
+            "role": "system",
+            "content": (
+                "Build a compact subject profile for corpus-driven concept discovery. "
+                "Return valid JSON only."
+            ),
+        },
+        {
+            "role": "user",
+            "content": f"""Subject id: {profile.subject}
+Category: {profile.category}
+Initial domain label: {profile.domain}
+Initial topic anchors: {", ".join(profile.topic_anchors)}
+
+Create a subject profile for retrieving concept-dense English Wikipedia passages.
+
+Requirements:
+- domain: short human-readable subject domain.
+- topic_anchors: {max_topic_anchors} or fewer high-yield subtopics, concepts, theories, methods, formulas, or taxonomies.
+- Prefer anchors that are likely article titles or section topics.
+- Avoid broad labels that are just the whole subject.
+- excluded_scope: 3 to 8 things to avoid, such as biographies, chronology, trivia, or irrelevant adjacent fields.
+
+Return JSON:
+{{
+  "domain": "...",
+  "topic_anchors": ["..."],
+  "excluded_scope": ["..."]
+}}""",
+        },
+    ]
+
+
+def validate_subject_profile_payload(payload: dict[str, Any]) -> SubjectProfilePayload:
+    parsed = SubjectProfilePayload.model_validate(payload)
+    parsed.topic_anchors = [
+        re.sub(r"\s+", " ", item).strip()
+        for item in parsed.topic_anchors
+        if re.sub(r"\s+", " ", str(item)).strip()
+    ][:24]
+    parsed.excluded_scope = [
+        re.sub(r"\s+", " ", item).strip()
+        for item in parsed.excluded_scope
+        if re.sub(r"\s+", " ", str(item)).strip()
+    ][:12]
+    parsed.domain = re.sub(r"\s+", " ", parsed.domain).strip()
+    return parsed
+
+
+async def refine_subject_profile(
+    profile: SubjectProfile,
+    *,
+    client: SmokeModelClient,
+    max_topic_anchors: int,
+    skip_llm_profile: bool,
+) -> tuple[SubjectProfile, dict[str, Any]]:
+    if skip_llm_profile:
+        return profile, {"ok": True, "skipped": True, "source": profile.source}
+    payload, result, error = await client.complete_json(
+        subject_profile_prompt(profile, max_topic_anchors=max_topic_anchors),
+        namespace=f"wiki_subject_profile.{profile.subject}",
+        validate=validate_subject_profile_payload,
+    )
+    log = {
+        "ok": isinstance(payload, SubjectProfilePayload),
+        "error": error,
+        "latency_s": result.latency_s if result else None,
+        "cached": result.cached if result else None,
+        "usage": result.usage if result else {},
+    }
+    if not isinstance(payload, SubjectProfilePayload):
+        return profile, log
+
+    anchors: list[str] = []
+    seen: set[str] = set()
+    for item in [*payload.topic_anchors, *profile.topic_anchors]:
+        cleaned = re.sub(r"\s+", " ", item).strip()
+        key = cleaned.lower()
+        if cleaned and key not in seen:
+            seen.add(key)
+            anchors.append(cleaned)
+        if len(anchors) >= max_topic_anchors:
+            break
+    excluded = list(dict.fromkeys([*payload.excluded_scope, *profile.excluded_scope]))[:12]
+    return (
+        SubjectProfile(
+            subject=profile.subject,
+            category=profile.category,
+            domain=payload.domain or profile.domain,
+            topic_anchors=anchors,
+            excluded_scope=excluded,
+            source=f"{profile.source}+llm",
+        ),
+        log,
     )
 
 
@@ -656,7 +797,7 @@ def filter_candidate(candidate: CandidateConceptRow) -> FilteredCandidateRow:
     words = name.split()
     if not name:
         reasons.append("EMPTY_NAME")
-    if name in TOO_BROAD_NAMES:
+    if name in TOO_BROAD_NAMES or name in SUBJECT_TOO_BROAD_NAMES.get(candidate.subject, set()):
         reasons.append("TOO_BROAD")
     if len(words) > 7:
         reasons.append("TOO_NARROW")
@@ -677,14 +818,134 @@ def filter_candidates(candidates: list[CandidateConceptRow]) -> tuple[list[Filte
     return [row for row in rows if row.filter_status == "IS_CONCEPT"], [row for row in rows if row.filter_status != "IS_CONCEPT"]
 
 
-def find_evidence_span(text: str, name: str, fallback: str) -> str:
+FOCUS_STOP_TERMS = {
+    "the",
+    "and",
+    "for",
+    "with",
+    "that",
+    "this",
+    "from",
+    "high",
+    "school",
+    "concept",
+    "concepts",
+    "definition",
+    "meaning",
+    "examples",
+    "application",
+    "conditions",
+    "problem",
+    "type",
+    "identify",
+    "formula",
+    "calculation",
+    "rule",
+    "procedure",
+    "decision",
+    "common",
+    "mistake",
+    "misconception",
+}
+
+
+def focus_tokens(*items: str) -> set[str]:
+    tokens: set[str] = set()
+    for item in items:
+        for token in normalize_concept_name(item).split():
+            if len(token) > 2 and token not in FOCUS_STOP_TERMS:
+                tokens.add(token)
+    return tokens
+
+
+def split_evidence_sentences(text: str) -> list[str]:
+    cleaned = re.sub(r"\s+", " ", text).strip()
+    if not cleaned:
+        return []
+    parts = [part.strip() for part in re.split(r"(?<=[.!?])\s+", cleaned) if part.strip()]
+    if len(parts) <= 1:
+        return [cleaned]
+    return parts
+
+
+def find_evidence_span(
+    text: str,
+    name: str,
+    fallback: str,
+    *,
+    focus_terms: list[str] | set[str] | tuple[str, ...] | None = None,
+    max_chars: int = 900,
+) -> str:
+    concept_tokens = focus_tokens(name)
+    extra_tokens = focus_tokens(" ".join(focus_terms or []))
+    preferred_terms = {
+        "equal",
+        "equals",
+        "increase",
+        "decrease",
+        "inverse",
+        "intersect",
+        "intersection",
+        "quantity",
+        "demanded",
+        "supplied",
+        "supply",
+        "demand",
+        "curve",
+        "graph",
+        "price",
+        "calculate",
+        "ratio",
+        "percentage",
+        "greater",
+        "less",
+        "condition",
+        "assumption",
+        "exception",
+        "whereas",
+        "however",
+    }
+    target_tokens = concept_tokens | extra_tokens | preferred_terms
+    sentences = split_evidence_sentences(text)
+    best_text = ""
+    best_score = -1.0
+    for start in range(len(sentences)):
+        for width in (1, 2, 3):
+            window = " ".join(sentences[start : start + width]).strip()
+            if not window:
+                continue
+            normalized = normalize_concept_name(window)
+            tokens = set(normalized.split())
+            concept_hits = len(tokens & concept_tokens)
+            focus_hits = len(tokens & extra_tokens)
+            preferred_hits = len(tokens & preferred_terms)
+            marker_bonus = 0.0
+            lowered = window.lower()
+            if any(pattern in lowered for pattern in [" is a ", " is an ", " refers to ", " is defined as "]):
+                marker_bonus += 1.0
+            if any(symbol in window for symbol in ["=", ">", "<", "≤", "≥", "/", "Δ"]):
+                marker_bonus += 1.0
+            if "quantity demanded" in lowered or "quantity supplied" in lowered:
+                marker_bonus += 1.0
+            if "supply and demand" in lowered:
+                marker_bonus += 0.7
+            length_penalty = max(0.0, (len(window) - max_chars) / max_chars)
+            score = concept_hits * 4.0 + focus_hits * 1.4 + preferred_hits * 0.5 + marker_bonus - length_penalty
+            if concept_tokens and concept_hits == 0:
+                score -= 3.0
+            if score > best_score:
+                best_score = score
+                best_text = window
+    if best_text and best_score > 0:
+        return re.sub(r"\s+", " ", best_text).strip()[:max_chars]
+
     tokens = [tok for tok in normalize_concept_name(name).split() if tok]
     if tokens:
         pattern = re.compile(r"[^.?!]*(?:" + "|".join(map(re.escape, tokens[:3])) + r")[^.?!]*[.?!]", re.I)
         match = pattern.search(text)
         if match:
-            return re.sub(r"\s+", " ", match.group(0)).strip()[:700]
-    return re.sub(r"\s+", " ", fallback or text[:700]).strip()[:700]
+            return re.sub(r"\s+", " ", match.group(0)).strip()[:max_chars]
+    return re.sub(r"\s+", " ", fallback or text[:max_chars]).strip()[:max_chars]
 
 
 def name_supported_by_hit(candidate: FilteredCandidateRow, hit: dict[str, Any]) -> bool:
@@ -837,10 +1098,41 @@ def evidence_queries(profile: SubjectProfile, concept: ConceptRegistryRow) -> li
     domain = profile.domain
     return [
         ("definition", f"{name} definition {domain}"),
-        ("trigger", f"{name} when to use application conditions {domain}"),
-        ("rule", f"{name} rule formula procedure decision {domain}"),
+        ("definition", f"{name} concept meaning examples {domain}"),
+        ("trigger", f"{name} when to use application conditions examples {domain}"),
+        ("trigger", f"{name} problem type identify when applies {domain}"),
+        ("rule", f"{name} formula calculation rule procedure {domain}"),
+        ("rule", f"{name} decision rule graph interpretation {domain}"),
+        ("rule", f"{name} how to solve example {domain}"),
         ("pitfall", f"{name} common mistake misconception exception boundary {domain}"),
+        ("pitfall", f"{name} vs related concept difference confusion {domain}"),
+        ("pitfall", f"{name} limitations assumptions {domain}"),
     ]
+
+
+SLOT_TERMS: dict[SlotName, set[str]] = {
+    "definition": {"definition", "defined", "refers", "meaning", "represents", "concept", "measure", "is"},
+    "trigger": {"when", "if", "use", "applies", "condition", "case", "problem", "given", "specified"},
+    "rule": {"formula", "calculate", "calculated", "rule", "equals", "ratio", "slope", "procedure", "derive", "therefore", "because", "graph", "curve", "line"},
+    "pitfall": {"mistake", "misconception", "confuse", "not", "however", "although", "exception", "limit", "assumption", "whereas", "versus", "difference"},
+}
+
+
+def evidence_quality_score(concept: ConceptRegistryRow, slot: SlotName, hit: dict[str, Any]) -> float:
+    text = str(hit.get("text") or "")
+    haystack = normalize_concept_name(" ".join([str(hit.get("title") or ""), str(hit.get("section") or ""), text]))
+    concept_tokens = [tok for tok in concept.normalized_name.split() if len(tok) > 2]
+    concept_hits = sum(1 for tok in concept_tokens if tok in haystack)
+    slot_hits = sum(1 for tok in SLOT_TERMS[slot] if tok in haystack)
+    definition_bonus = 0.0
+    if slot == "definition" and any(pattern in text.lower() for pattern in [" is a ", " is an ", " refers to ", " represents "]):
+        definition_bonus = 1.0
+    procedural_bonus = 0.0
+    if slot == "rule" and any(ch in text for ch in ["=", ">", "<", "≤", "≥", "/", "Δ"]):
+        procedural_bonus = 1.0
+    title_bonus = 0.6 if concept.normalized_name in normalize_concept_name(str(hit.get("title") or "")) else 0.0
+    retrieval_score = float(hit.get("score") or 0.0)
+    return retrieval_score + title_bonus + min(3.0, concept_hits * 0.8) + min(2.5, slot_hits * 0.35) + definition_bonus + procedural_bonus
 
 
 def build_evidence_packs(
@@ -861,12 +1153,9 @@ def build_evidence_packs(
             all_queries.append(query)
             query_meta.append((concept, slot, query))
     batch_results = search_wiki_batch(service_url, all_queries, top_k=top_k, timeout_s=timeout_s) if all_queries else []
-    evidence_by_concept: dict[str, list[EvidenceItem]] = defaultdict(list)
+    candidates_by_concept_slot: dict[tuple[str, SlotName], list[EvidenceItem]] = defaultdict(list)
     for (concept, slot, query), item in zip(query_meta, batch_results):
-        kept = 0
         for hit in item.get("results", []):
-            if kept >= max_items_per_slot:
-                break
             if not isinstance(hit, dict) or hit.get("missing"):
                 continue
             text = str(hit.get("text") or "").strip()
@@ -880,22 +1169,49 @@ def build_evidence_packs(
             if name_tokens and sum(1 for tok in name_tokens if tok in normalized_text) < min(len(name_tokens), 2):
                 continue
             source_id = stable_id("source", profile.subject, passage_id)
-            evidence_by_concept[concept.concept_id].append(
+            score = evidence_quality_score(concept, slot, hit)
+            span_focus_terms = sorted(SLOT_TERMS[slot] | focus_tokens(query, concept.definition))
+            candidates_by_concept_slot[(concept.concept_id, slot)].append(
                 EvidenceItem(
-                    evidence_id=stable_id("evidence", concept.concept_id, slot, source_id, kept),
+                    evidence_id=stable_id("evidence", concept.concept_id, slot, source_id, query),
                     slot=slot,
                     source_id=source_id,
                     passage_id=passage_id,
                     title=str(hit.get("title")) if hit.get("title") is not None else None,
                     section=str(hit.get("section")) if hit.get("section") is not None else None,
                     text=text,
-                    evidence_span=find_evidence_span(text, concept.canonical_name, text[:700]),
+                    evidence_span=find_evidence_span(
+                        text,
+                        concept.canonical_name,
+                        text[:900],
+                        focus_terms=span_focus_terms,
+                        max_chars=1000,
+                    ),
                     retrieval_query=query,
                     retrieval_score=float(hit.get("score") or 0.0),
                     rank=int(hit.get("rank") or 0),
+                    evidence_score=score,
                 )
             )
-            kept += 1
+
+    evidence_by_concept: dict[str, list[EvidenceItem]] = defaultdict(list)
+    for concept in concepts:
+        seen_source_slot: set[tuple[str, SlotName]] = set()
+        for slot in ("definition", "trigger", "rule", "pitfall"):
+            slot_items = sorted(
+                candidates_by_concept_slot.get((concept.concept_id, slot), []),
+                key=lambda ev: (-ev.evidence_score, -ev.retrieval_score, ev.rank, ev.source_id),
+            )
+            kept = 0
+            for ev in slot_items:
+                key = (ev.source_id, ev.slot)
+                if key in seen_source_slot:
+                    continue
+                seen_source_slot.add(key)
+                evidence_by_concept[concept.concept_id].append(ev)
+                kept += 1
+                if kept >= max_items_per_slot:
+                    break
     return [
         EvidencePackRow(
             evidence_pack_id=stable_id("evidence_pack", profile.subject, concept.concept_id),
@@ -943,10 +1259,17 @@ Create exactly one compact card for this concept.
 Rules:
 - Use only evidence above.
 - Keep the card short.
-- definition: one concise sentence.
-- trigger: 1 to 4 conditions for when to use this concept.
-- rule: 1 to 5 procedural rules.
-- pitfall: 0 to 4 common mistakes or boundaries.
+- definition: one concise sentence, phrased close to the strongest definition evidence.
+- trigger: 1 to 4 problem patterns or observable cues for when this concept should be used.
+- rule: 1 to 5 executable rules: formulas, inequalities, graph interpretations, classification criteria, or ordered decision steps.
+- pitfall: 1 to 4 common mistakes, confusions, assumptions, or boundaries when evidence supports them.
+- Do not write generic rules such as "understand the concept" or "identify relevant information".
+- Do not restate the definition as a rule unless it gives a concrete decision procedure.
+- Prefer if/then, calculate, compare, classify, or check style wording.
+- Prefer central {pack.subject} / {pack.concept} use cases that would help ordinary course problems.
+- Do not use niche research, lab-method, medical, historical, or advanced subtopic evidence as a trigger/rule/pitfall unless the concept itself is that narrower subtopic.
+- A pitfall may be a conservative boundary derived from evidence about assumptions, exceptions, limitations, or related-concept differences.
+- Phrase a derived pitfall as a concrete boundary, e.g. "Do not use this when ..." or "Do not confuse ... with ...".
 - Every slot item must include source_ids from the evidence pack.
 - If evidence is insufficient, still return JSON but use empty arrays for unsupported trigger/rule/pitfall.
 
@@ -1038,6 +1361,72 @@ def content_tokens(text: str) -> set[str]:
     return {tok for tok in TOKEN_RE.findall(text.lower()) if tok not in stop}
 
 
+def evidence_text_for_source(source_id: str, evidence_by_source: dict[str, list[EvidenceItem]]) -> str:
+    return " ".join(ev.evidence_span or ev.text for ev in evidence_by_source.get(source_id, []))
+
+
+def lexical_supported_sources(
+    slot_text: str,
+    source_ids: list[str],
+    evidence_by_source: dict[str, list[EvidenceItem]],
+    *,
+    min_ratio: float,
+    min_count: int,
+) -> list[str]:
+    claim_tokens = content_tokens(slot_text)
+    if not claim_tokens:
+        return []
+    supported: list[str] = []
+    valid_source_ids = [source_id for source_id in dict.fromkeys(source_ids) if source_id in evidence_by_source]
+    for source_id in valid_source_ids:
+        evidence_tokens = content_tokens(evidence_text_for_source(source_id, evidence_by_source))
+        overlap = claim_tokens & evidence_tokens
+        if len(overlap) >= min_count and (len(overlap) / max(1, len(claim_tokens))) >= min_ratio:
+            supported.append(source_id)
+    return supported
+
+
+def strong_lexical_sources(
+    slot: SlotName,
+    slot_text: str,
+    source_ids: list[str],
+    evidence_by_source: dict[str, list[EvidenceItem]],
+) -> list[str]:
+    if slot == "definition":
+        return lexical_supported_sources(slot_text, source_ids, evidence_by_source, min_ratio=0.45, min_count=4)
+    if slot == "rule":
+        return lexical_supported_sources(slot_text, source_ids, evidence_by_source, min_ratio=0.40, min_count=4)
+    if slot == "trigger":
+        return lexical_supported_sources(slot_text, source_ids, evidence_by_source, min_ratio=0.30, min_count=3)
+    return lexical_supported_sources(slot_text, source_ids, evidence_by_source, min_ratio=0.25, min_count=3)
+
+
+def source_has_slot(source_id: str, slot: SlotName, evidence_by_source: dict[str, list[EvidenceItem]]) -> bool:
+    return any(ev.slot == slot for ev in evidence_by_source.get(source_id, []))
+
+
+def should_accept_partial_claim(
+    *,
+    slot: SlotName,
+    text: str,
+    source_ids: list[str],
+    evidence_by_source: dict[str, list[EvidenceItem]],
+    lexical_sources: list[str],
+) -> tuple[bool, list[str], str]:
+    strong_sources = strong_lexical_sources(slot, text, source_ids, evidence_by_source)
+    if slot == "definition" and strong_sources:
+        return True, strong_sources, "partial_definition_strong_source_overlap"
+    if slot == "rule" and strong_sources and is_procedural_rule(text):
+        return True, strong_sources, "partial_rule_strong_procedural_overlap"
+    if slot == "trigger" and (strong_sources or lexical_sources):
+        return True, strong_sources or lexical_sources, "partial_trigger_conservative_context"
+    if slot == "pitfall":
+        pitfall_sources = [source_id for source_id in (strong_sources or lexical_sources) if source_has_slot(source_id, "pitfall", evidence_by_source)]
+        if pitfall_sources:
+            return True, pitfall_sources, "partial_pitfall_conservative_boundary"
+    return False, [], "partial_not_strong_enough"
+
+
 def verify_slot(slot_text: str, source_ids: list[str], evidence_by_source: dict[str, list[EvidenceItem]]) -> tuple[str, list[str], str]:
     text = re.sub(r"\s+", " ", slot_text).strip()
     valid_source_ids = [source_id for source_id in dict.fromkeys(source_ids) if source_id in evidence_by_source]
@@ -1050,7 +1439,7 @@ def verify_slot(slot_text: str, source_ids: list[str], evidence_by_source: dict[
         return "REJECT", [], "no_content_tokens"
     supported: list[str] = []
     for source_id in valid_source_ids:
-        evidence_text = " ".join(ev.evidence_span or ev.text for ev in evidence_by_source[source_id])
+        evidence_text = evidence_text_for_source(source_id, evidence_by_source)
         evidence_tokens = content_tokens(evidence_text)
         overlap = claim_tokens & evidence_tokens
         # Definition/compact procedural claims often paraphrase. Require a light
@@ -1062,14 +1451,213 @@ def verify_slot(slot_text: str, source_ids: list[str], evidence_by_source: dict[
     return "REJECT", [], "insufficient_overlap"
 
 
-def verify_runtime_cards(
+def card_slot_items(raw: RuntimeCardRawRow) -> list[tuple[SlotName, CardSlotDraft]]:
+    return [
+        ("definition", raw.definition),
+        *[("trigger", item) for item in raw.trigger],
+        *[("rule", item) for item in raw.rule],
+        *[("pitfall", item) for item in raw.pitfall],
+    ]
+
+
+def verification_prompt(raw: RuntimeCardRawRow, evidence_by_source: dict[str, list[EvidenceItem]]) -> list[dict[str, str]]:
+    evidence_block = "\n\n".join(
+        [
+            f"Source ID: {source_id}\n"
+            + "\n".join(
+                f"- Target slot: {ev.slot}; Title: {ev.title or ''}; Evidence: {(ev.evidence_span or ev.text[:900])[:1200]}"
+                for ev in items[:3]
+            )
+            for source_id, items in list(evidence_by_source.items())[:16]
+        ]
+    )
+    claims_block = "\n".join(
+        f"{idx}. slot={slot}; text={item.text}; source_ids={item.source_ids}"
+        for idx, (slot, item) in enumerate(card_slot_items(raw), start=1)
+    )
+    return [
+        {
+            "role": "system",
+            "content": (
+                "You verify whether compact concept-card claims are supported by supplied evidence. "
+                "Return valid JSON only."
+            ),
+        },
+        {
+            "role": "user",
+            "content": f"""Subject: {raw.subject}
+Concept: {raw.concept}
+
+Evidence:
+{evidence_block}
+
+Claims to verify, in order:
+{claims_block}
+
+For each claim, decide:
+- SUPPORTED: the evidence directly supports the claim or a conservative procedural paraphrase.
+- PARTIAL: the evidence is related but the claim adds unsupported details.
+- UNSUPPORTED: evidence does not support the claim, source IDs are wrong, or the claim is generic/unusable.
+
+Verification policy:
+- Definition claims need direct support or very close paraphrase.
+- Rule claims need direct support or a conservative procedural paraphrase of the evidence; a rule must be executable, not merely a restated definition.
+- Trigger claims can be supported by evidence showing the concept's application context or problem condition.
+- Pitfall claims can be supported by evidence about assumptions, limitations, exceptions, contrast with a related concept, or a boundary case. The source does not need to literally say "pitfall" or "mistake" if the boundary is conservative.
+- Reject claims that introduce a new formula, causal relation, exception, or concept contrast not grounded in evidence.
+- Reject trigger/rule/pitfall claims that are only about a narrow subtopic, research method, medical application, lab technique, historical detail, or advanced edge case when the card concept is broader than that subtopic.
+- A good runtime card should help ordinary subject-level problems about the named concept, not merely repeat a random retrieved passage where the concept word appears.
+
+Return JSON:
+{{
+  "claims": [
+    {{"slot": "definition|trigger|rule|pitfall", "text": "...", "decision": "SUPPORTED|PARTIAL|UNSUPPORTED", "source_ids": ["source_..."], "reason": "short reason"}}
+  ]
+}}""",
+        },
+    ]
+
+
+def validate_verification_payload(payload: dict[str, Any]) -> RuntimeCardVerificationPayload:
+    parsed = RuntimeCardVerificationPayload.model_validate(payload)
+    for claim in parsed.claims:
+        decision = claim.decision.strip().upper()
+        if decision not in {"SUPPORTED", "PARTIAL", "UNSUPPORTED"}:
+            raise ValueError(f"invalid verification decision: {claim.decision}")
+        claim.decision = decision
+        claim.text = re.sub(r"\s+", " ", claim.text).strip()
+        claim.reason = re.sub(r"\s+", " ", claim.reason).strip()
+    return parsed
+
+
+async def verify_claims_with_llm(
+    raw: RuntimeCardRawRow,
+    evidence_by_source: dict[str, list[EvidenceItem]],
+    *,
+    client: SmokeModelClient,
+) -> tuple[RuntimeCardVerificationPayload | None, dict[str, Any]]:
+    payload, result, error = await client.complete_json(
+        verification_prompt(raw, evidence_by_source),
+        namespace=f"wiki_runtime_card.verify.{raw.subject}.{raw.concept_id}",
+        validate=validate_verification_payload,
+    )
+    log = {
+        "card_id": raw.card_id,
+        "concept_id": raw.concept_id,
+        "ok": isinstance(payload, RuntimeCardVerificationPayload),
+        "error": error,
+        "latency_s": result.latency_s if result else None,
+        "cached": result.cached if result else None,
+        "usage": result.usage if result else {},
+    }
+    return (payload if isinstance(payload, RuntimeCardVerificationPayload) else None), log
+
+
+PROCEDURAL_TERMS = {
+    "calculate",
+    "compute",
+    "divide",
+    "compare",
+    "classify",
+    "greater",
+    "less",
+    "equal",
+    "if",
+    "then",
+    "slope",
+    "ratio",
+    "change",
+    "percentage",
+    "graph",
+    "curve",
+    "line",
+    "constraint",
+    "check",
+    "identify",
+    "treat",
+    "set",
+}
+
+
+def is_procedural_rule(text: str) -> bool:
+    lowered = text.lower()
+    if any(symbol in lowered for symbol in ["=", ">", "<", "≤", "≥", "/", "Δ"]):
+        return True
+    return any(term in lowered for term in PROCEDURAL_TERMS)
+
+
+def score_card_quality(
+    raw: RuntimeCardRawRow,
+    accepted: dict[SlotName, list[str]],
+    claims_for_card: list[RuntimeCardClaimRow],
+    accepted_sources: set[str],
+    *,
+    min_quality_score: float,
+) -> RuntimeCardQualityRow:
+    total_claims = max(1, len(claims_for_card))
+    accepted_claims = sum(1 for claim in claims_for_card if claim.decision == "ACCEPT")
+    support_rate = accepted_claims / total_claims
+    procedural_rule_count = sum(1 for text in accepted["rule"] if is_procedural_rule(text))
+    trigger_score = min(1.0, len(accepted["trigger"]) / 2.0)
+    rule_score = min(1.0, len(accepted["rule"]) / 2.0)
+    pitfall_score = min(1.0, len(accepted["pitfall"]) / 1.0)
+    evidence_score = min(1.0, len(accepted_sources) / 2.0)
+    quality_score = (
+        (0.25 if accepted["definition"] else 0.0)
+        + 0.20 * trigger_score
+        + 0.25 * rule_score
+        + (0.10 if procedural_rule_count else 0.0)
+        + 0.10 * support_rate
+        + 0.05 * pitfall_score
+        + 0.05 * evidence_score
+    )
+    reasons: list[str] = []
+    if not accepted["definition"]:
+        reasons.append("missing_supported_definition")
+    if len(accepted["trigger"]) < 2:
+        reasons.append("missing_sufficient_supported_triggers")
+    if len(accepted["rule"]) < 2:
+        reasons.append("missing_sufficient_supported_rules")
+    if not accepted["pitfall"]:
+        reasons.append("missing_supported_pitfall")
+    if procedural_rule_count < 2:
+        reasons.append("missing_sufficient_procedural_rules")
+    if support_rate < 0.75:
+        reasons.append("low_support_rate")
+    if quality_score < min_quality_score:
+        reasons.append("low_quality_score")
+    status = "active" if not reasons else "rejected"
+    return RuntimeCardQualityRow(
+        card_id=raw.card_id,
+        concept_id=raw.concept_id,
+        concept=raw.concept,
+        definition_supported=bool(accepted["definition"]),
+        trigger_count=len(accepted["trigger"]),
+        rule_count=len(accepted["rule"]),
+        pitfall_count=len(accepted["pitfall"]),
+        support_rate=support_rate,
+        evidence_source_count=len(accepted_sources),
+        procedural_rule_count=procedural_rule_count,
+        quality_score=round(quality_score, 4),
+        status=status,
+        reasons=reasons,
+    )
+
+
+async def verify_runtime_cards(
     raw_cards: list[RuntimeCardRawRow],
     packs: list[EvidencePackRow],
-) -> tuple[list[RuntimeCardRow], list[RuntimeCardClaimRow], list[RejectedItemRow]]:
+    *,
+    client: SmokeModelClient,
+    skip_llm_verifier: bool,
+    min_quality_score: float,
+) -> tuple[list[RuntimeCardRow], list[RuntimeCardClaimRow], list[RuntimeCardQualityRow], list[RejectedItemRow], list[dict[str, Any]]]:
     pack_by_id = {pack.evidence_pack_id: pack for pack in packs}
     final_cards: list[RuntimeCardRow] = []
     claims: list[RuntimeCardClaimRow] = []
+    quality_rows: list[RuntimeCardQualityRow] = []
     rejected: list[RejectedItemRow] = []
+    verification_logs: list[dict[str, Any]] = []
     for raw in raw_cards:
         pack = pack_by_id.get(raw.evidence_pack_id)
         if pack is None:
@@ -1089,40 +1677,75 @@ def verify_runtime_cards(
 
         accepted: dict[SlotName, list[str]] = {"definition": [], "trigger": [], "rule": [], "pitfall": []}
         accepted_sources: set[str] = set()
-        slot_items: list[tuple[SlotName, CardSlotDraft]] = [
-            ("definition", raw.definition),
-            *[("trigger", item) for item in raw.trigger],
-            *[("rule", item) for item in raw.rule],
-            *[("pitfall", item) for item in raw.pitfall],
-        ]
+        slot_items = card_slot_items(raw)
+        verifier_payload: RuntimeCardVerificationPayload | None = None
+        if not skip_llm_verifier:
+            verifier_payload, verifier_log = await verify_claims_with_llm(raw, evidence_by_source, client=client)
+            verification_logs.append(verifier_log)
+        verifier_claims = verifier_payload.claims if verifier_payload else []
+        claims_for_card: list[RuntimeCardClaimRow] = []
         for idx, (slot, item) in enumerate(slot_items, start=1):
-            decision, supporting_source_ids, reason = verify_slot(item.text, item.source_ids, evidence_by_source)
+            lexical_decision, lexical_sources, lexical_reason = verify_slot(item.text, item.source_ids, evidence_by_source)
+            verifier = verifier_claims[idx - 1] if idx - 1 < len(verifier_claims) else None
+            if verifier is not None and verifier.decision == "SUPPORTED":
+                supporting_source_ids = [
+                    source_id
+                    for source_id in dict.fromkeys(verifier.source_ids or item.source_ids)
+                    if source_id in evidence_by_source
+                ] or lexical_sources
+                decision = "ACCEPT" if supporting_source_ids else "REJECT"
+                reason = f"llm_supported:{verifier.reason or lexical_reason}"
+            elif verifier is not None:
+                if verifier.decision == "PARTIAL":
+                    partial_ok, partial_sources, partial_reason = should_accept_partial_claim(
+                        slot=slot,
+                        text=item.text,
+                        source_ids=verifier.source_ids or item.source_ids,
+                        evidence_by_source=evidence_by_source,
+                        lexical_sources=lexical_sources,
+                    )
+                    if partial_ok:
+                        supporting_source_ids = partial_sources
+                        decision = "ACCEPT"
+                        reason = f"llm_partial_accepted:{partial_reason}; {verifier.reason or lexical_reason}"
+                    else:
+                        supporting_source_ids = []
+                        decision = "REJECT"
+                        reason = f"llm_partial_rejected:{verifier.reason or partial_reason}"
+                else:
+                    supporting_source_ids = []
+                    decision = "REJECT"
+                    reason = f"llm_{verifier.decision.lower()}:{verifier.reason or lexical_reason}"
+            else:
+                decision, supporting_source_ids, reason = lexical_decision, lexical_sources, f"lexical:{lexical_reason}"
             if decision == "ACCEPT":
                 text = re.sub(r"\s+", " ", item.text).strip()
                 if text not in accepted[slot]:
                     accepted[slot].append(text)
                 accepted_sources.update(supporting_source_ids)
-            claims.append(
-                RuntimeCardClaimRow(
-                    claim_id=stable_id("runtime_claim", raw.card_id, idx, slot, item.text),
-                    card_id=raw.card_id,
-                    concept_id=raw.concept_id,
-                    slot=slot,
-                    text=re.sub(r"\s+", " ", item.text).strip(),
-                    supporting_source_ids=supporting_source_ids,
-                    decision=decision,
-                    reason=reason,
-                )
+            claim_row = RuntimeCardClaimRow(
+                claim_id=stable_id("runtime_claim", raw.card_id, idx, slot, item.text),
+                card_id=raw.card_id,
+                concept_id=raw.concept_id,
+                slot=slot,
+                text=re.sub(r"\s+", " ", item.text).strip(),
+                supporting_source_ids=supporting_source_ids,
+                decision=decision,
+                reason=reason,
             )
+            claims.append(claim_row)
+            claims_for_card.append(claim_row)
 
-        if not accepted["definition"] or not accepted["rule"]:
+        quality = score_card_quality(raw, accepted, claims_for_card, accepted_sources, min_quality_score=min_quality_score)
+        quality_rows.append(quality)
+        if quality.status != "active":
             rejected.append(
                 RejectedItemRow(
                     item_id=raw.card_id,
                     item_type="runtime_card",
-                    stage="card_verification",
-                    reason="missing_supported_definition_or_rule",
-                    payload=raw.model_dump(mode="json"),
+                    stage="card_quality_gate",
+                    reason=";".join(quality.reasons),
+                    payload={"raw_card": raw.model_dump(mode="json"), "quality": quality.model_dump(mode="json")},
                 )
             )
             continue
@@ -1139,7 +1762,7 @@ def verify_runtime_cards(
                 source_ids=sorted(accepted_sources),
             )
         )
-    return final_cards, claims, rejected
+    return final_cards, claims, quality_rows, rejected, verification_logs
 
 
 def render_runtime_card(card: RuntimeCardRow) -> str:
@@ -1157,7 +1780,45 @@ def render_runtime_card(card: RuntimeCardRow) -> str:
     return "\n".join(sections)
 
 
-def build_runtime_card_index(cards: list[RuntimeCardRow], out: Path) -> tuple[list[RuntimeCardIndexRow], dict[str, Any]]:
+def embed_texts_with_wikipag_service(
+    texts: list[str],
+    *,
+    service_url: str,
+    timeout_s: float,
+) -> tuple[np.ndarray, int]:
+    vectors: list[list[float]] = []
+    dimension: int | None = None
+    endpoint = service_url.rstrip("/") + "/embed_query"
+    with httpx.Client(timeout=timeout_s) as client:
+        for text in texts:
+            response = client.post(endpoint, json={"query": text})
+            response.raise_for_status()
+            payload = response.json()
+            vector = payload.get("embedding")
+            if not isinstance(vector, list) or not vector:
+                raise RuntimeError("embed_query returned no embedding")
+            values = [float(item) for item in vector]
+            if dimension is None:
+                dimension = int(payload.get("dimension") or len(values))
+            if len(values) != dimension:
+                raise RuntimeError(f"embedding dimension mismatch: {len(values)} != {dimension}")
+            vectors.append(values)
+    if not vectors:
+        return np.zeros((0, 0), dtype=np.float32), 0
+    matrix = np.asarray(vectors, dtype=np.float32)
+    norms = np.linalg.norm(matrix, axis=1, keepdims=True)
+    matrix = matrix / np.maximum(norms, 1e-12)
+    return matrix, int(dimension or 0)
+
+
+def build_runtime_card_index(
+    cards: list[RuntimeCardRow],
+    out: Path,
+    *,
+    backend: str = "hash",
+    service_url: str = "http://127.0.0.1:8897",
+    timeout_s: float = 120.0,
+) -> tuple[list[RuntimeCardIndexRow], dict[str, Any]]:
     rows = [
         RuntimeCardIndexRow(
             card_id=card.card_id,
@@ -1170,15 +1831,25 @@ def build_runtime_card_index(cards: list[RuntimeCardRow], out: Path) -> tuple[li
         )
         for card in cards
     ]
-    embedder = HashingTextEmbedder()
-    matrix = embedder.embed([row.index_text for row in rows])
+    texts = [row.index_text for row in rows]
+    if backend == "wikipag":
+        matrix, dimension = embed_texts_with_wikipag_service(texts, service_url=service_url, timeout_s=timeout_s)
+        embedding_backend = "wikipag_service"
+        embedding_model = "Qwen3-Embedding-4B"
+    else:
+        embedder = HashingTextEmbedder()
+        matrix = embedder.embed(texts)
+        dimension = int(matrix.shape[1]) if matrix.ndim == 2 else embedder.dim
+        embedding_backend = "hash"
+        embedding_model = embedder.model_name
     np.save(out / "runtime_card_index.npy", matrix)
     meta = {
         "index_type": "numpy_dense_matrix",
         "metric": "cosine_on_normalized_embeddings",
-        "embedding_backend": "hash",
-        "embedding_model": embedder.model_name,
-        "dimension": int(matrix.shape[1]) if matrix.ndim == 2 else embedder.dim,
+        "embedding_backend": embedding_backend,
+        "embedding_model": embedding_model,
+        "embedding_service_url": service_url if backend == "wikipag" else None,
+        "dimension": dimension,
         "count": len(rows),
         "matrix_path": str(out / "runtime_card_index.npy"),
         "ids_path": str(out / "runtime_card_index.jsonl"),
@@ -1230,6 +1901,7 @@ def build_manifest(
     raw_cards: list[RuntimeCardRawRow],
     runtime_cards: list[RuntimeCardRow],
     claims: list[RuntimeCardClaimRow],
+    quality_rows: list[RuntimeCardQualityRow],
     rejected_items: list[RejectedItemRow],
     index_meta: dict[str, Any],
     evidence_section_count: int,
@@ -1252,6 +1924,12 @@ def build_manifest(
         "runtime_card_claim_count": len(claims),
         "accepted_claim_count": sum(1 for row in claims if row.decision == "ACCEPT"),
         "rejected_claim_count": sum(1 for row in claims if row.decision == "REJECT"),
+        "avg_card_quality_score": (
+            sum(row.quality_score for row in quality_rows) / len(quality_rows)
+            if quality_rows
+            else 0.0
+        ),
+        "min_card_quality_score": args.min_card_quality_score,
         "evidence_section_count": evidence_section_count,
         "rejected_item_count": len(rejected_items),
         "runtime_card_index": index_meta,
@@ -1261,10 +1939,24 @@ def build_manifest(
         "source_corpus_only": True,
         "one_card_per_subject_concept": True,
         "runtime_card_slots": ["definition", "trigger", "rule", "pitfall"],
+        "quality_gate": {
+            "requires_supported_definition": True,
+            "min_supported_triggers": 2,
+            "min_supported_rules": 2,
+            "requires_supported_pitfall": True,
+            "min_procedural_rules": 2,
+            "min_support_rate": 0.75,
+            "min_quality_score": args.min_card_quality_score,
+        },
     }
 
 
-def render_report(summary: dict[str, Any], runtime_cards: list[RuntimeCardRow], rejected: list[RejectedItemRow]) -> str:
+def render_report(
+    summary: dict[str, Any],
+    runtime_cards: list[RuntimeCardRow],
+    quality_rows: list[RuntimeCardQualityRow],
+    rejected: list[RejectedItemRow],
+) -> str:
     lines = [
         "# Wiki Compact Runtime Card Construction",
         "",
@@ -1276,11 +1968,19 @@ def render_report(summary: dict[str, Any], runtime_cards: list[RuntimeCardRow], 
         "",
         "## Runtime cards",
         "",
-        "| card_id | concept | trigger | rule | pitfall |",
-        "|---|---:|---:|---:|---:|",
+        "| card_id | concept | quality | trigger | rule | pitfall |",
+        "|---|---|---:|---:|---:|---:|",
     ]
+    quality_by_card = {row.card_id: row for row in quality_rows}
     for card in runtime_cards:
-        lines.append(f"| `{card.card_id}` | {card.concept} | {len(card.trigger)} | {len(card.rule)} | {len(card.pitfall)} |")
+        quality = quality_by_card.get(card.card_id)
+        score = quality.quality_score if quality else 0.0
+        lines.append(f"| `{card.card_id}` | {card.concept} | {score:.2f} | {len(card.trigger)} | {len(card.rule)} | {len(card.pitfall)} |")
+    rejected_quality = [row for row in quality_rows if row.status != "active"]
+    if rejected_quality:
+        lines.extend(["", "## Rejected by quality gate", "", "| card_id | concept | score | reasons |", "|---|---|---:|---|"])
+        for row in rejected_quality[:50]:
+            lines.append(f"| `{row.card_id}` | {row.concept} | {row.quality_score:.2f} | {', '.join(row.reasons)} |")
     lines.extend(["", "## Rejected items", "", "| item_id | stage | reason |", "|---|---|---|"])
     for item in rejected[:50]:
         lines.append(f"| `{item.item_id}` | {item.stage} | {item.reason} |")
@@ -1293,21 +1993,6 @@ async def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
     out.mkdir(parents=True, exist_ok=True)
 
     profile = build_subject_profile(args)
-    write_jsonl(out / "subject_profile.jsonl", [profile])
-
-    concept_queries = build_concept_queries(profile, max_queries=args.max_concept_queries)
-    write_jsonl(out / "concept_queries.jsonl", concept_queries)
-
-    concept_passages = retrieve_concept_passages(
-        profile,
-        concept_queries,
-        service_url=args.wikipag_service_url,
-        top_k_per_query=args.top_k_per_query,
-        timeout_s=args.retrieval_timeout_s,
-        max_passages=args.max_passages,
-    )
-    write_jsonl(out / "concept_passages.jsonl", concept_passages)
-
     model_config = ModelConfig(
         name=args.model,
         max_completion_tokens=args.max_completion_tokens,
@@ -1321,6 +2006,28 @@ async def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
         timeout_s=args.model_timeout_s,
     )
     try:
+        profile, profile_log = await refine_subject_profile(
+            profile,
+            client=client,
+            max_topic_anchors=args.max_topic_anchors,
+            skip_llm_profile=args.skip_llm_profile,
+        )
+        write_jsonl(out / "subject_profile.jsonl", [profile])
+        write_jsonl(out / "subject_profile_logs.jsonl", [profile_log])
+
+        concept_queries = build_concept_queries(profile, max_queries=args.max_concept_queries)
+        write_jsonl(out / "concept_queries.jsonl", concept_queries)
+
+        concept_passages = retrieve_concept_passages(
+            profile,
+            concept_queries,
+            service_url=args.wikipag_service_url,
+            top_k_per_query=args.top_k_per_query,
+            timeout_s=args.retrieval_timeout_s,
+            max_passages=args.max_passages,
+        )
+        write_jsonl(out / "concept_passages.jsonl", concept_passages)
+
         candidate_concepts, candidate_logs = await extract_candidate_concepts(
             profile,
             concept_passages,
@@ -1362,14 +2069,29 @@ async def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
         raw_cards, card_extraction_logs = await extract_runtime_cards(evidence_packs, client=client)
         write_jsonl(out / "runtime_card_extraction_logs.jsonl", card_extraction_logs)
         write_jsonl(out / "runtime_cards.raw.jsonl", raw_cards)
+
+        runtime_cards, claims, quality_rows, card_rejections, verification_logs = await verify_runtime_cards(
+            raw_cards,
+            evidence_packs,
+            client=client,
+            skip_llm_verifier=args.skip_llm_verifier,
+            min_quality_score=args.min_card_quality_score,
+        )
+        write_jsonl(out / "runtime_card_verification_logs.jsonl", verification_logs)
     finally:
         await client.aclose()
 
-    runtime_cards, claims, card_rejections = verify_runtime_cards(raw_cards, evidence_packs)
     write_jsonl(out / "runtime_card_claims.jsonl", claims)
+    write_jsonl(out / "runtime_card_quality.jsonl", quality_rows)
     write_jsonl(out / "runtime_cards.jsonl", runtime_cards)
 
-    index_rows, index_meta = build_runtime_card_index(runtime_cards, out)
+    index_rows, index_meta = build_runtime_card_index(
+        runtime_cards,
+        out,
+        backend=args.card_index_backend,
+        service_url=args.wikipag_service_url,
+        timeout_s=args.embedding_timeout_s,
+    )
     write_jsonl(out / "runtime_card_index.jsonl", index_rows)
 
     rejected_items: list[RejectedItemRow] = [
@@ -1411,6 +2133,7 @@ async def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
             ("evidence_packs", "evidence packs retrieved", {"evidence_pack_count": len(evidence_packs)}),
             ("runtime_cards_raw", "compact raw cards extracted", {"raw_card_count": len(raw_cards)}),
             ("runtime_card_claims", "card slots verified", {"claim_count": len(claims)}),
+            ("runtime_card_quality", "runtime cards scored", {"quality_row_count": len(quality_rows)}),
             ("runtime_cards", "final runtime cards written", {"runtime_card_count": len(runtime_cards)}),
             ("runtime_card_index", "runtime card index written", {"index_count": len(index_rows)}),
         ]
@@ -1436,6 +2159,12 @@ async def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
         "runtime_card_claim_count": len(claims),
         "accepted_claim_count": sum(1 for row in claims if row.decision == "ACCEPT"),
         "rejected_claim_count": sum(1 for row in claims if row.decision == "REJECT"),
+        "avg_card_quality_score": (
+            sum(row.quality_score for row in quality_rows) / len(quality_rows)
+            if quality_rows
+            else 0.0
+        ),
+        "min_card_quality_score": args.min_card_quality_score,
         "runtime_card_count": len(runtime_cards),
         "active_card_count": len(runtime_cards),
         "runtime_card_index_count": len(index_rows),
@@ -1454,6 +2183,7 @@ async def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
         raw_cards=raw_cards,
         runtime_cards=runtime_cards,
         claims=claims,
+        quality_rows=quality_rows,
         rejected_items=rejected_items,
         index_meta=index_meta,
         evidence_section_count=evidence_section_count,
@@ -1461,7 +2191,7 @@ async def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
     )
     (out / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     (out / "bank_manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    (out / "report.md").write_text(render_report(summary, runtime_cards, rejected_items), encoding="utf-8")
+    (out / "report.md").write_text(render_report(summary, runtime_cards, quality_rows, rejected_items), encoding="utf-8")
     return summary
 
 
@@ -1490,6 +2220,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--concurrency", type=int, default=4)
     parser.add_argument("--max-retries", type=int, default=2)
     parser.add_argument("--model-timeout-s", type=float, default=120.0)
+    parser.add_argument("--skip-llm-profile", action="store_true")
+    parser.add_argument("--skip-llm-verifier", action="store_true")
+    parser.add_argument("--min-card-quality-score", type=float, default=0.72)
+    parser.add_argument("--card-index-backend", choices=["wikipag", "hash"], default="wikipag")
+    parser.add_argument("--embedding-timeout-s", type=float, default=120.0)
     args = parser.parse_args(argv)
     summary = asyncio.run(run_pipeline(args))
     print(json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True))

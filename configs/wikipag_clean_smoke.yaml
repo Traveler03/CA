@@ -18,6 +18,8 @@ construction:
   evidence_top_k: 6
   max_evidence_items_per_slot: 2
   max_card_concepts: 10
+  min_card_quality_score: 0.72
+  card_index_backend: wikipag
 
 model:
   name: gpt-5.4
@@ -25,3 +27,5 @@ model:
   concurrency: 4
   max_retries: 2
   timeout_s: 120
+  skip_llm_profile: false
+  skip_llm_verifier: false
