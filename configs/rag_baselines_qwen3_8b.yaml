@@ -1,0 +1,60 @@
+run_name: smoke
+output_root: runs/rag_baselines_qwen3_8b
+seed: 42
+resume: true
+methods:
+  - trag
+  - dkm_rag
+  - qtt_rag
+
+data:
+  datasets:
+    - global_mmlu
+    - mmlu_prox
+  languages:
+    - bn
+    - sw
+    - te
+    - ne
+    - hi
+  global_mmlu_dir: data/processed/global_mmlu
+  mmlu_prox_dir: /tmp/ca_low_resource_eval/mmlu_prox_processed
+
+retrieval:
+  retriever: Qwen3-Embedding-4B
+  embedding_model_dir: data/external/models/Qwen3-Embedding-4B
+  english_service_url: http://127.0.0.1:8897
+  multilingual_root: /tmp/ca_multilingual_wikipedia_qwen3_4b/full_20231101
+  device: cuda
+  top_k: 5
+  ef_search: 128
+  timeout_s: 60
+
+llm:
+  model_name: Qwen3-8B-Instruct
+  model_dir: /tmp/qwen_models/Qwen3-8B
+  max_model_len: 16384
+  gpu_memory_utilization: 0.70
+  batch_size: 64
+
+rag:
+  temperature: 0
+  top_k: 5
+  retrieval_query: question + options
+  max_final_answer_tokens: 32
+  max_evidence_tokens: 1200
+  per_doc_max_tokens: 240
+  translation_max_tokens: 512
+  refine_max_tokens: 512
+  quality_score_max_tokens: 384
+
+presets:
+  smoke:
+    run_name: smoke
+    limit_per_language: 20
+  pilot:
+    run_name: pilot
+    limit_per_language: 200
+  full:
+    run_name: full
+    limit_per_language:
