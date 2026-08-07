@@ -1,0 +1,1595 @@
+{
+  "run": {
+    "name": "full_tcrag_qwen3_8b_local_2gpu",
+    "method": "tCRAG / trag",
+    "model": "/tmp/qwen_models/Qwen3-8B via local vLLM",
+    "created_at": "2026-08-07T10:58:27.345789+00:00",
+    "output_dir": "runs/smoke_001/full_tcrag_qwen3_8b_local_2gpu",
+    "input_rows": 47815,
+    "merged_predictions": "runs/smoke_001/full_tcrag_qwen3_8b_local_2gpu/predictions.jsonl",
+    "source_counts": {
+      "runs/smoke_001/full_tcrag_qwen3_8b_local_2gpu/shard0/predictions.jsonl": {
+        "rows": 23908,
+        "duplicates_skipped": 0,
+        "errors": 0
+      },
+      "runs/smoke_001/full_tcrag_qwen3_8b_local_2gpu/shard1/predictions.jsonl": {
+        "rows": 23907,
+        "duplicates_skipped": 0,
+        "errors": 0
+      },
+      "runs/smoke_001/full_tcrag_qwen3_8b_local_2gpu/shard0_helper_gpu1/predictions.jsonl": {
+        "rows": 1652,
+        "used_for_missing_main_keys": 0
+      }
+    }
+  },
+  "overall": {
+    "n": 47815,
+    "correct": 24071,
+    "accuracy": 0.5034194290494615,
+    "valid": 47806,
+    "valid_rate": 0.9998117745477361,
+    "errors": 0,
+    "error_rate": 0.0,
+    "latency_s": {
+      "mean": 6.67888559029112,
+      "p50": 6.867576403543353,
+      "p95": 9.691282712854445,
+      "max": 14.12591937649995
+    }
+  },
+  "by_dataset": {
+    "global_mmlu": {
+      "n": 21705,
+      "correct": 12803,
+      "accuracy": 0.5898640866159871,
+      "valid": 21701,
+      "valid_rate": 0.9998157106657453,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 5.4699803715292425,
+        "p50": 5.165012562647462,
+        "p95": 8.911650577560067,
+        "max": 13.746977997943759
+      }
+    },
+    "mmlu_prox": {
+      "n": 26110,
+      "correct": 11268,
+      "accuracy": 0.4315587897357334,
+      "valid": 26105,
+      "valid_rate": 0.9998085024894676,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 7.683837247634152,
+        "p50": 7.705334669910371,
+        "p95": 9.931836092844605,
+        "max": 14.12591937649995
+      }
+    }
+  },
+  "by_language": {
+    "bn": {
+      "n": 9563,
+      "correct": 5023,
+      "accuracy": 0.5252535815120778,
+      "valid": 9562,
+      "valid_rate": 0.9998954303042978,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 6.66335978730208,
+        "p50": 7.028121302835643,
+        "p95": 9.777237860485911,
+        "max": 12.350024643354118
+      }
+    },
+    "hi": {
+      "n": 9563,
+      "correct": 5126,
+      "accuracy": 0.5360242601694029,
+      "valid": 9562,
+      "valid_rate": 0.9998954303042978,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 6.751679119897762,
+        "p50": 6.8398568062111735,
+        "p95": 9.672124457545578,
+        "max": 13.56368044577539
+      }
+    },
+    "ne": {
+      "n": 9563,
+      "correct": 5050,
+      "accuracy": 0.5280769632960368,
+      "valid": 9562,
+      "valid_rate": 0.9998954303042978,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 6.678231652308064,
+        "p50": 6.863379918038845,
+        "p95": 9.83478161599487,
+        "max": 12.574346514418721
+      }
+    },
+    "sw": {
+      "n": 9563,
+      "correct": 3909,
+      "accuracy": 0.40876294049984313,
+      "valid": 9558,
+      "valid_rate": 0.9994771515214891,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 6.608614047607293,
+        "p50": 6.6116142719984055,
+        "p95": 9.301068061031401,
+        "max": 14.12591937649995
+      }
+    },
+    "te": {
+      "n": 9563,
+      "correct": 4963,
+      "accuracy": 0.5189793997699467,
+      "valid": 9562,
+      "valid_rate": 0.9998954303042978,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 6.692543344340403,
+        "p50": 6.911452179774642,
+        "p95": 9.754517251625657,
+        "max": 13.055051524192095
+      }
+    }
+  },
+  "by_dataset_language": {
+    "global_mmlu|bn": {
+      "n": 4341,
+      "correct": 2711,
+      "accuracy": 0.6245104814558857,
+      "valid": 4340,
+      "valid_rate": 0.9997696383321816,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 5.298106575925808,
+        "p50": 5.516527570784092,
+        "p95": 8.976960817351937,
+        "max": 12.350024643354118
+      }
+    },
+    "global_mmlu|hi": {
+      "n": 4341,
+      "correct": 2798,
+      "accuracy": 0.644551946556093,
+      "valid": 4341,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 5.657478554232874,
+        "p50": 5.172518819570541,
+        "p95": 9.180077590048313,
+        "max": 13.56368044577539
+      }
+    },
+    "global_mmlu|ne": {
+      "n": 4341,
+      "correct": 2719,
+      "accuracy": 0.6263533747984336,
+      "valid": 4341,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 5.466517030805104,
+        "p50": 5.008240774273872,
+        "p95": 9.24617326259613,
+        "max": 12.574346514418721
+      }
+    },
+    "global_mmlu|sw": {
+      "n": 4341,
+      "correct": 1940,
+      "accuracy": 0.4469016355678415,
+      "valid": 4339,
+      "valid_rate": 0.999539276664363,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 5.545498489935369,
+        "p50": 5.136584904044867,
+        "p95": 8.620973251760006,
+        "max": 13.746977997943759
+      }
+    },
+    "global_mmlu|te": {
+      "n": 4341,
+      "correct": 2635,
+      "accuracy": 0.6070029947016816,
+      "valid": 4340,
+      "valid_rate": 0.9997696383321816,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 5.3823012067470595,
+        "p50": 4.9617485497146845,
+        "p95": 8.750601756386459,
+        "max": 12.191599912941456
+      }
+    },
+    "mmlu_prox|bn": {
+      "n": 5222,
+      "correct": 2312,
+      "accuracy": 0.44274224435082343,
+      "valid": 5222,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 7.798282075809241,
+        "p50": 7.735035574063659,
+        "p95": 10.127441774122417,
+        "max": 11.964662265963852
+      }
+    },
+    "mmlu_prox|hi": {
+      "n": 5222,
+      "correct": 2328,
+      "accuracy": 0.4458062045193413,
+      "valid": 5221,
+      "valid_rate": 0.9998085024894676,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 7.661277866652124,
+        "p50": 7.705811992287636,
+        "p95": 9.864596761763096,
+        "max": 13.298036186024547
+      }
+    },
+    "mmlu_prox|ne": {
+      "n": 5222,
+      "correct": 2331,
+      "accuracy": 0.44638069705093836,
+      "valid": 5221,
+      "valid_rate": 0.9998085024894676,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 7.685518740003266,
+        "p50": 7.767006888985634,
+        "p95": 9.951769274659455,
+        "max": 12.267166474834085
+      }
+    },
+    "mmlu_prox|sw": {
+      "n": 5222,
+      "correct": 1969,
+      "accuracy": 0.3770585982382229,
+      "valid": 5219,
+      "valid_rate": 0.9994255074684029,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 7.492372116518404,
+        "p50": 7.606344124302268,
+        "p95": 9.5200712736696,
+        "max": 14.12591937649995
+      }
+    },
+    "mmlu_prox|te": {
+      "n": 5222,
+      "correct": 2328,
+      "accuracy": 0.4458062045193413,
+      "valid": 5222,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 7.781735439187723,
+        "p50": 7.82633170299232,
+        "p95": 10.02258630655706,
+        "max": 13.055051524192095
+      }
+    }
+  },
+  "by_subject": {
+    "global_mmlu|abstract_algebra": {
+      "n": 160,
+      "correct": 84,
+      "accuracy": 0.525,
+      "valid": 160,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.2119576700381005,
+        "p50": 4.6979392459616065,
+        "p95": 6.897780518978834,
+        "max": 7.0980716766789556
+      }
+    },
+    "global_mmlu|anatomy": {
+      "n": 210,
+      "correct": 128,
+      "accuracy": 0.6095238095238096,
+      "valid": 210,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.43346790624339,
+        "p50": 4.905221689492464,
+        "p95": 6.001308551989496,
+        "max": 6.857380396686494
+      }
+    },
+    "global_mmlu|astronomy": {
+      "n": 240,
+      "correct": 193,
+      "accuracy": 0.8041666666666667,
+      "valid": 240,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.393141585212046,
+        "p50": 4.805637431330979,
+        "p95": 6.012346205301583,
+        "max": 6.838392230682075
+      }
+    },
+    "global_mmlu|business_ethics": {
+      "n": 160,
+      "correct": 106,
+      "accuracy": 0.6625,
+      "valid": 160,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.498980358528206,
+        "p50": 4.861132129095495,
+        "p95": 6.262584357522428,
+        "max": 7.406235230155289
+      }
+    },
+    "global_mmlu|clinical_knowledge": {
+      "n": 405,
+      "correct": 266,
+      "accuracy": 0.6567901234567901,
+      "valid": 405,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.607967038999921,
+        "p50": 4.806945079006255,
+        "p95": 7.685426955111325,
+        "max": 8.830264604650438
+      }
+    },
+    "global_mmlu|college_biology": {
+      "n": 230,
+      "correct": 160,
+      "accuracy": 0.6956521739130435,
+      "valid": 230,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.9987404240700215,
+        "p50": 5.2899735532701015,
+        "p95": 8.192174053750932,
+        "max": 8.221916580572724
+      }
+    },
+    "global_mmlu|college_chemistry": {
+      "n": 160,
+      "correct": 98,
+      "accuracy": 0.6125,
+      "valid": 160,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.691452067601494,
+        "p50": 5.4234355771914124,
+        "p95": 6.0381452506408095,
+        "max": 7.3399162869900465
+      }
+    },
+    "global_mmlu|college_computer_science": {
+      "n": 160,
+      "correct": 92,
+      "accuracy": 0.575,
+      "valid": 160,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.5655457602697425,
+        "p50": 4.958941327407956,
+        "p95": 6.065107546746731,
+        "max": 6.815399116836488
+      }
+    },
+    "global_mmlu|college_mathematics": {
+      "n": 160,
+      "correct": 67,
+      "accuracy": 0.41875,
+      "valid": 160,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.309225786558818,
+        "p50": 4.750588400289416,
+        "p95": 5.803501135669649,
+        "max": 6.215128675103188
+      }
+    },
+    "global_mmlu|college_medicine": {
+      "n": 275,
+      "correct": 183,
+      "accuracy": 0.6654545454545454,
+      "valid": 275,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.060264286920428,
+        "p50": 4.3862116346135736,
+        "p95": 5.534586036577821,
+        "max": 5.854095219634473
+      }
+    },
+    "global_mmlu|college_physics": {
+      "n": 160,
+      "correct": 76,
+      "accuracy": 0.475,
+      "valid": 160,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.03494179302943,
+        "p50": 4.34902638848871,
+        "p95": 5.8521534614264965,
+        "max": 8.610595004633069
+      }
+    },
+    "global_mmlu|computer_security": {
+      "n": 160,
+      "correct": 106,
+      "accuracy": 0.6625,
+      "valid": 160,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.043228918960085,
+        "p50": 4.029944292269647,
+        "p95": 8.168595994822681,
+        "max": 8.561004537157714
+      }
+    },
+    "global_mmlu|conceptual_physics": {
+      "n": 360,
+      "correct": 256,
+      "accuracy": 0.7111111111111111,
+      "valid": 360,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 3.7817683116765695,
+        "p50": 4.076671347022057,
+        "p95": 5.619314970448613,
+        "max": 7.770685289986432
+      }
+    },
+    "global_mmlu|econometrics": {
+      "n": 185,
+      "correct": 58,
+      "accuracy": 0.31351351351351353,
+      "valid": 185,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 3.9952839250097405,
+        "p50": 4.390190203674138,
+        "p95": 5.4241753639653325,
+        "max": 6.791815682314336
+      }
+    },
+    "global_mmlu|electrical_engineering": {
+      "n": 225,
+      "correct": 147,
+      "accuracy": 0.6533333333333333,
+      "valid": 225,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.07964335401439,
+        "p50": 4.699293888173997,
+        "p95": 5.782758720219135,
+        "max": 6.389757362194359
+      }
+    },
+    "global_mmlu|elementary_mathematics": {
+      "n": 580,
+      "correct": 402,
+      "accuracy": 0.6931034482758621,
+      "valid": 580,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.041476132027034,
+        "p50": 4.477260095067322,
+        "p95": 6.277358208782971,
+        "max": 8.117900835350156
+      }
+    },
+    "global_mmlu|formal_logic": {
+      "n": 195,
+      "correct": 111,
+      "accuracy": 0.5692307692307692,
+      "valid": 195,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.786291877060938,
+        "p50": 5.070359013974667,
+        "p95": 8.636892168782651,
+        "max": 8.651136672124267
+      }
+    },
+    "global_mmlu|global_facts": {
+      "n": 160,
+      "correct": 81,
+      "accuracy": 0.50625,
+      "valid": 160,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.297558210330317,
+        "p50": 4.954702239483595,
+        "p95": 6.251600973308086,
+        "max": 6.757014508359134
+      }
+    },
+    "global_mmlu|high_school_biology": {
+      "n": 475,
+      "correct": 341,
+      "accuracy": 0.7178947368421053,
+      "valid": 475,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.408348049080294,
+        "p50": 4.6564837154001,
+        "p95": 6.14155210647732,
+        "max": 6.939476325176656
+      }
+    },
+    "global_mmlu|high_school_chemistry": {
+      "n": 315,
+      "correct": 184,
+      "accuracy": 0.5841269841269842,
+      "valid": 315,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.8827959490053,
+        "p50": 5.281993201933801,
+        "p95": 8.020698640495539,
+        "max": 8.756742519326508
+      }
+    },
+    "global_mmlu|high_school_computer_science": {
+      "n": 160,
+      "correct": 115,
+      "accuracy": 0.71875,
+      "valid": 157,
+      "valid_rate": 0.98125,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 7.4405759720481,
+        "p50": 7.3827312448993325,
+        "p95": 10.025064464658499,
+        "max": 10.475886073894799
+      }
+    },
+    "global_mmlu|high_school_european_history": {
+      "n": 255,
+      "correct": 179,
+      "accuracy": 0.7019607843137254,
+      "valid": 254,
+      "valid_rate": 0.996078431372549,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 7.439158288583013,
+        "p50": 7.036261624656618,
+        "p95": 10.473345634527504,
+        "max": 11.426843558438122
+      }
+    },
+    "global_mmlu|high_school_geography": {
+      "n": 310,
+      "correct": 209,
+      "accuracy": 0.6741935483870968,
+      "valid": 310,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.987669071101493,
+        "p50": 4.867424191907048,
+        "p95": 7.11427345033735,
+        "max": 8.242884679697454
+      }
+    },
+    "global_mmlu|high_school_government_and_politics": {
+      "n": 305,
+      "correct": 200,
+      "accuracy": 0.6557377049180327,
+      "valid": 305,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 5.05614996835223,
+        "p50": 4.961533368565142,
+        "p95": 7.362115681171417,
+        "max": 8.242981716059148
+      }
+    },
+    "global_mmlu|high_school_macroeconomics": {
+      "n": 595,
+      "correct": 337,
+      "accuracy": 0.5663865546218487,
+      "valid": 595,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.794275508199607,
+        "p50": 4.823556804098189,
+        "p95": 6.243478615768254,
+        "max": 7.681789425201714
+      }
+    },
+    "global_mmlu|high_school_mathematics": {
+      "n": 415,
+      "correct": 191,
+      "accuracy": 0.4602409638554217,
+      "valid": 415,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.794853378946792,
+        "p50": 4.912505970336497,
+        "p95": 6.2116496209055185,
+        "max": 6.898114003241062
+      }
+    },
+    "global_mmlu|high_school_microeconomics": {
+      "n": 370,
+      "correct": 270,
+      "accuracy": 0.7297297297297297,
+      "valid": 370,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 5.062613298844647,
+        "p50": 5.064962655305862,
+        "p95": 6.564288499765098,
+        "max": 7.107248270884156
+      }
+    },
+    "global_mmlu|high_school_physics": {
+      "n": 235,
+      "correct": 115,
+      "accuracy": 0.48936170212765956,
+      "valid": 235,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.9116684937651485,
+        "p50": 4.986050963401794,
+        "p95": 6.148908552713692,
+        "max": 6.564686303958297
+      }
+    },
+    "global_mmlu|high_school_psychology": {
+      "n": 825,
+      "correct": 595,
+      "accuracy": 0.7212121212121212,
+      "valid": 825,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 5.2187870698377035,
+        "p50": 5.190016780048609,
+        "p95": 7.0226674899458885,
+        "max": 8.931022100150585
+      }
+    },
+    "global_mmlu|high_school_statistics": {
+      "n": 335,
+      "correct": 201,
+      "accuracy": 0.6,
+      "valid": 335,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 7.10412927820389,
+        "p50": 7.276551718823612,
+        "p95": 9.858863075263798,
+        "max": 10.652375761419535
+      }
+    },
+    "global_mmlu|high_school_us_history": {
+      "n": 320,
+      "correct": 213,
+      "accuracy": 0.665625,
+      "valid": 320,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 8.33970065995236,
+        "p50": 8.308463804423809,
+        "p95": 10.22788562066853,
+        "max": 11.781228377483785
+      }
+    },
+    "global_mmlu|high_school_world_history": {
+      "n": 365,
+      "correct": 244,
+      "accuracy": 0.6684931506849315,
+      "valid": 365,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 7.391162900843542,
+        "p50": 7.357163862325251,
+        "p95": 10.281215862371027,
+        "max": 11.685002056881785
+      }
+    },
+    "global_mmlu|human_aging": {
+      "n": 350,
+      "correct": 206,
+      "accuracy": 0.5885714285714285,
+      "valid": 350,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.626958454879267,
+        "p50": 4.53384408261627,
+        "p95": 5.872479038313031,
+        "max": 6.765492785722017
+      }
+    },
+    "global_mmlu|human_sexuality": {
+      "n": 210,
+      "correct": 134,
+      "accuracy": 0.638095238095238,
+      "valid": 210,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 5.345134641784465,
+        "p50": 4.981745712459087,
+        "p95": 8.47768340818584,
+        "max": 9.453425555489957
+      }
+    },
+    "global_mmlu|international_law": {
+      "n": 195,
+      "correct": 144,
+      "accuracy": 0.7384615384615385,
+      "valid": 195,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 5.585343418599894,
+        "p50": 5.224743816070259,
+        "p95": 7.96213042922318,
+        "max": 8.422467120923102
+      }
+    },
+    "global_mmlu|jurisprudence": {
+      "n": 175,
+      "correct": 117,
+      "accuracy": 0.6685714285714286,
+      "valid": 175,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 5.663834368261908,
+        "p50": 5.527930222451687,
+        "p95": 7.871468737721443,
+        "max": 7.872570506297052
+      }
+    },
+    "global_mmlu|logical_fallacies": {
+      "n": 260,
+      "correct": 141,
+      "accuracy": 0.5423076923076923,
+      "valid": 260,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 5.287164328412081,
+        "p50": 5.223112089559436,
+        "p95": 6.538646375760436,
+        "max": 7.736185280606151
+      }
+    },
+    "global_mmlu|machine_learning": {
+      "n": 180,
+      "correct": 72,
+      "accuracy": 0.4,
+      "valid": 180,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 5.045738637302485,
+        "p50": 4.869548065587878,
+        "p95": 6.856160366907716,
+        "max": 7.735969455912709
+      }
+    },
+    "global_mmlu|management": {
+      "n": 170,
+      "correct": 107,
+      "accuracy": 0.6294117647058823,
+      "valid": 170,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.747839387659641,
+        "p50": 4.793257030658424,
+        "p95": 6.411215525120497,
+        "max": 7.193068154156208
+      }
+    },
+    "global_mmlu|marketing": {
+      "n": 365,
+      "correct": 257,
+      "accuracy": 0.7041095890410959,
+      "valid": 365,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.7584982830801446,
+        "p50": 4.700926567427814,
+        "p95": 6.007151768542826,
+        "max": 7.841330447234213
+      }
+    },
+    "global_mmlu|medical_genetics": {
+      "n": 160,
+      "correct": 124,
+      "accuracy": 0.775,
+      "valid": 160,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.75898602817324,
+        "p50": 4.839166436344385,
+        "p95": 7.014707996509969,
+        "max": 7.2169187078252435
+      }
+    },
+    "global_mmlu|miscellaneous": {
+      "n": 1190,
+      "correct": 874,
+      "accuracy": 0.7344537815126051,
+      "valid": 1190,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.629550364467965,
+        "p50": 4.681015250273049,
+        "p95": 6.313543180935085,
+        "max": 8.90404212847352
+      }
+    },
+    "global_mmlu|moral_disputes": {
+      "n": 530,
+      "correct": 293,
+      "accuracy": 0.5528301886792453,
+      "valid": 530,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.89335038359892,
+        "p50": 5.002133437432349,
+        "p95": 6.052868841215968,
+        "max": 6.516023377887905
+      }
+    },
+    "global_mmlu|moral_scenarios": {
+      "n": 1350,
+      "correct": 487,
+      "accuracy": 0.36074074074074075,
+      "valid": 1350,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 5.140312463721192,
+        "p50": 5.004233320243657,
+        "p95": 6.748747070319951,
+        "max": 8.592790217138827
+      }
+    },
+    "global_mmlu|nutrition": {
+      "n": 470,
+      "correct": 290,
+      "accuracy": 0.6170212765957447,
+      "valid": 470,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 5.097891925828175,
+        "p50": 4.846601191908121,
+        "p95": 7.821995232254267,
+        "max": 8.733238882385194
+      }
+    },
+    "global_mmlu|philosophy": {
+      "n": 480,
+      "correct": 315,
+      "accuracy": 0.65625,
+      "valid": 480,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.55305271090668,
+        "p50": 4.546869142912328,
+        "p95": 5.938484606333077,
+        "max": 8.282514457590878
+      }
+    },
+    "global_mmlu|prehistory": {
+      "n": 500,
+      "correct": 324,
+      "accuracy": 0.648,
+      "valid": 500,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.664343096591532,
+        "p50": 4.687568897381425,
+        "p95": 5.688423504121602,
+        "max": 6.265759497880936
+      }
+    },
+    "global_mmlu|professional_accounting": {
+      "n": 435,
+      "correct": 212,
+      "accuracy": 0.48735632183908045,
+      "valid": 435,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 6.68645748640143,
+        "p50": 6.545586576685309,
+        "p95": 10.305692353285849,
+        "max": 11.329712614417076
+      }
+    },
+    "global_mmlu|professional_law": {
+      "n": 2315,
+      "correct": 896,
+      "accuracy": 0.38704103671706264,
+      "valid": 2315,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 8.504781429098264,
+        "p50": 8.31342989206314,
+        "p95": 11.05512902699411,
+        "max": 13.746977997943759
+      }
+    },
+    "global_mmlu|professional_medicine": {
+      "n": 420,
+      "correct": 301,
+      "accuracy": 0.7166666666666667,
+      "valid": 420,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 6.567594400622571,
+        "p50": 6.476782745681703,
+        "p95": 8.46774263959378,
+        "max": 9.866880466230214
+      }
+    },
+    "global_mmlu|professional_psychology": {
+      "n": 930,
+      "correct": 548,
+      "accuracy": 0.589247311827957,
+      "valid": 930,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 5.062177307508205,
+        "p50": 4.9861874440684915,
+        "p95": 6.8995695523917675,
+        "max": 8.58524770103395
+      }
+    },
+    "global_mmlu|public_relations": {
+      "n": 175,
+      "correct": 89,
+      "accuracy": 0.5085714285714286,
+      "valid": 175,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 6.357050127371081,
+        "p50": 6.29193545691669,
+        "p95": 8.825896277092397,
+        "max": 9.51003591902554
+      }
+    },
+    "global_mmlu|security_studies": {
+      "n": 375,
+      "correct": 229,
+      "accuracy": 0.6106666666666667,
+      "valid": 375,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 6.468970694596568,
+        "p50": 6.4771583750844,
+        "p95": 8.1108328839764,
+        "max": 9.545063103549182
+      }
+    },
+    "global_mmlu|sociology": {
+      "n": 315,
+      "correct": 208,
+      "accuracy": 0.6603174603174603,
+      "valid": 315,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 5.154197737621883,
+        "p50": 5.154829897917807,
+        "p95": 7.189687218517065,
+        "max": 7.975083453580737
+      }
+    },
+    "global_mmlu|us_foreign_policy": {
+      "n": 160,
+      "correct": 111,
+      "accuracy": 0.69375,
+      "valid": 160,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 5.170319012820255,
+        "p50": 5.225307451561093,
+        "p95": 7.001352621242404,
+        "max": 7.833121814765036
+      }
+    },
+    "global_mmlu|virology": {
+      "n": 260,
+      "correct": 116,
+      "accuracy": 0.4461538461538462,
+      "valid": 260,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 4.594331166689069,
+        "p50": 4.6276807971298695,
+        "p95": 5.631860215216875,
+        "max": 8.429998186416924
+      }
+    },
+    "global_mmlu|world_religions": {
+      "n": 270,
+      "correct": 200,
+      "accuracy": 0.7407407407407407,
+      "valid": 270,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 5.277053751454999,
+        "p50": 5.002582550980151,
+        "p95": 7.834873242303729,
+        "max": 9.693940402008593
+      }
+    },
+    "mmlu_prox|college_biology": {
+      "n": 1755,
+      "correct": 1334,
+      "accuracy": 0.7601139601139602,
+      "valid": 1755,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 7.845705107084218,
+        "p50": 7.729791712015867,
+        "p95": 10.186092496849597,
+        "max": 12.813563781790435
+      }
+    },
+    "mmlu_prox|college_chemistry": {
+      "n": 4770,
+      "correct": 1637,
+      "accuracy": 0.3431865828092243,
+      "valid": 4767,
+      "valid_rate": 0.9993710691823899,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 7.842176258117273,
+        "p50": 7.7678208239376545,
+        "p95": 10.051948870532215,
+        "max": 12.551451250910759
+      }
+    },
+    "mmlu_prox|college_computer_science": {
+      "n": 680,
+      "correct": 320,
+      "accuracy": 0.47058823529411764,
+      "valid": 680,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 7.8588863741633865,
+        "p50": 7.915663219988346,
+        "p95": 9.713765748776495,
+        "max": 12.267166474834085
+      }
+    },
+    "mmlu_prox|college_mathematics": {
+      "n": 2170,
+      "correct": 703,
+      "accuracy": 0.323963133640553,
+      "valid": 2168,
+      "valid_rate": 0.9990783410138249,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 5.960959408191904,
+        "p50": 5.833533742465079,
+        "p95": 8.069992246106267,
+        "max": 10.214019394479692
+      }
+    },
+    "mmlu_prox|college_physics": {
+      "n": 6680,
+      "correct": 2505,
+      "accuracy": 0.375,
+      "valid": 6680,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 7.946671655090403,
+        "p50": 7.93719551153481,
+        "p95": 9.967074542306364,
+        "max": 13.055051524192095
+      }
+    },
+    "mmlu_prox|electrical_engineering": {
+      "n": 2270,
+      "correct": 1017,
+      "accuracy": 0.44801762114537447,
+      "valid": 2270,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 8.57382933784826,
+        "p50": 8.48759815748781,
+        "p95": 10.503692011348903,
+        "max": 14.12591937649995
+      }
+    },
+    "mmlu_prox|high_school_microeconomics": {
+      "n": 2000,
+      "correct": 1162,
+      "accuracy": 0.581,
+      "valid": 2000,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 7.409020874143578,
+        "p50": 7.287739618681371,
+        "p95": 9.589317994192243,
+        "max": 12.021745542995632
+      }
+    },
+    "mmlu_prox|high_school_psychology": {
+      "n": 1525,
+      "correct": 1053,
+      "accuracy": 0.6904918032786885,
+      "valid": 1525,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 7.541871016449371,
+        "p50": 7.562380473129451,
+        "p95": 9.67607709299773,
+        "max": 11.583145160228014
+      }
+    },
+    "mmlu_prox|high_school_statistics": {
+      "n": 355,
+      "correct": 89,
+      "accuracy": 0.2507042253521127,
+      "valid": 355,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 6.567585072545728,
+        "p50": 6.720352296717465,
+        "p95": 8.790087850764394,
+        "max": 9.77567318174988
+      }
+    },
+    "mmlu_prox|management": {
+      "n": 2800,
+      "correct": 951,
+      "accuracy": 0.33964285714285714,
+      "valid": 2800,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 7.683778731882506,
+        "p50": 7.641227572225034,
+        "p95": 9.59574093669653,
+        "max": 13.298036186024547
+      }
+    },
+    "mmlu_prox|medical_genetics": {
+      "n": 735,
+      "correct": 362,
+      "accuracy": 0.4925170068027211,
+      "valid": 735,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 8.336253048711438,
+        "p50": 8.190445704385638,
+        "p95": 10.248453439213336,
+        "max": 13.13822634331882
+      }
+    },
+    "mmlu_prox|professional_accounting": {
+      "n": 370,
+      "correct": 135,
+      "accuracy": 0.36486486486486486,
+      "valid": 370,
+      "valid_rate": 1.0,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 6.298106024995748,
+        "p50": 6.206705887801945,
+        "p95": 8.615109045058489,
+        "max": 10.47198369819671
+      }
+    }
+  },
+  "comparison_zero_shot": {
+    "baseline_dir": "runs/smoke_001/full_qwen3_8b_localized_zero_shot_2gpu",
+    "common_n": 47815,
+    "baseline_overall": {
+      "n": 47815,
+      "correct": 17909,
+      "accuracy": 0.37454773606608804,
+      "valid": 39327,
+      "valid_rate": 0.8224824845759698,
+      "errors": 0,
+      "error_rate": 0.0
+    },
+    "tcrag_on_common": {
+      "n": 47815,
+      "correct": 24071,
+      "accuracy": 0.5034194290494615,
+      "valid": 47806,
+      "valid_rate": 0.9998117745477361,
+      "errors": 0,
+      "error_rate": 0.0,
+      "latency_s": {
+        "mean": 6.67888559029112,
+        "p50": 6.867576403543353,
+        "p95": 9.691282712854445,
+        "max": 14.12591937649995
+      }
+    },
+    "deltas": {
+      "overall": {
+        "overall": {
+          "n": 47815,
+          "zero_correct": 17909,
+          "tcrag_correct": 24071,
+          "wrong_to_right": 10013,
+          "right_to_wrong": 3851,
+          "same_correctness": 33951,
+          "zero_accuracy": 0.37454773606608804,
+          "tcrag_accuracy": 0.5034194290494615,
+          "delta_accuracy": 0.12887169298337342,
+          "net_correct_gain": 6162
+        }
+      },
+      "by_dataset": {
+        "global_mmlu": {
+          "n": 21705,
+          "zero_correct": 10254,
+          "tcrag_correct": 12803,
+          "wrong_to_right": 4703,
+          "right_to_wrong": 2154,
+          "same_correctness": 14848,
+          "zero_accuracy": 0.47242570836212855,
+          "tcrag_accuracy": 0.5898640866159871,
+          "delta_accuracy": 0.11743837825385856,
+          "net_correct_gain": 2549
+        },
+        "mmlu_prox": {
+          "n": 26110,
+          "zero_correct": 7655,
+          "tcrag_correct": 11268,
+          "wrong_to_right": 5310,
+          "right_to_wrong": 1697,
+          "same_correctness": 19103,
+          "zero_accuracy": 0.29318268862504787,
+          "tcrag_accuracy": 0.4315587897357334,
+          "delta_accuracy": 0.13837610111068555,
+          "net_correct_gain": 3613
+        }
+      },
+      "by_language": {
+        "bn": {
+          "n": 9563,
+          "zero_correct": 4015,
+          "tcrag_correct": 5023,
+          "wrong_to_right": 1705,
+          "right_to_wrong": 697,
+          "same_correctness": 7161,
+          "zero_accuracy": 0.4198473282442748,
+          "tcrag_accuracy": 0.5252535815120778,
+          "delta_accuracy": 0.10540625326780301,
+          "net_correct_gain": 1008
+        },
+        "hi": {
+          "n": 9563,
+          "zero_correct": 4175,
+          "tcrag_correct": 5126,
+          "wrong_to_right": 1674,
+          "right_to_wrong": 723,
+          "same_correctness": 7166,
+          "zero_accuracy": 0.4365784795566245,
+          "tcrag_accuracy": 0.5360242601694029,
+          "delta_accuracy": 0.09944578061277837,
+          "net_correct_gain": 951
+        },
+        "ne": {
+          "n": 9563,
+          "zero_correct": 3948,
+          "tcrag_correct": 5050,
+          "wrong_to_right": 1847,
+          "right_to_wrong": 745,
+          "same_correctness": 6971,
+          "zero_accuracy": 0.41284115863222837,
+          "tcrag_accuracy": 0.5280769632960368,
+          "delta_accuracy": 0.11523580466380845,
+          "net_correct_gain": 1102
+        },
+        "sw": {
+          "n": 9563,
+          "zero_correct": 1941,
+          "tcrag_correct": 3909,
+          "wrong_to_right": 2924,
+          "right_to_wrong": 956,
+          "same_correctness": 5683,
+          "zero_accuracy": 0.20296977935794208,
+          "tcrag_accuracy": 0.40876294049984313,
+          "delta_accuracy": 0.20579316114190105,
+          "net_correct_gain": 1968
+        },
+        "te": {
+          "n": 9563,
+          "zero_correct": 3830,
+          "tcrag_correct": 4963,
+          "wrong_to_right": 1863,
+          "right_to_wrong": 730,
+          "same_correctness": 6970,
+          "zero_accuracy": 0.4005019345393705,
+          "tcrag_accuracy": 0.5189793997699467,
+          "delta_accuracy": 0.11847746523057617,
+          "net_correct_gain": 1133
+        }
+      },
+      "by_dataset_language": {
+        "global_mmlu|bn": {
+          "n": 4341,
+          "zero_correct": 2250,
+          "tcrag_correct": 2711,
+          "wrong_to_right": 823,
+          "right_to_wrong": 362,
+          "same_correctness": 3156,
+          "zero_accuracy": 0.5183137525915688,
+          "tcrag_accuracy": 0.6245104814558857,
+          "delta_accuracy": 0.10619672886431697,
+          "net_correct_gain": 461
+        },
+        "global_mmlu|hi": {
+          "n": 4341,
+          "zero_correct": 2357,
+          "tcrag_correct": 2798,
+          "wrong_to_right": 798,
+          "right_to_wrong": 357,
+          "same_correctness": 3186,
+          "zero_accuracy": 0.5429624510481456,
+          "tcrag_accuracy": 0.644551946556093,
+          "delta_accuracy": 0.10158949550794749,
+          "net_correct_gain": 441
+        },
+        "global_mmlu|ne": {
+          "n": 4341,
+          "zero_correct": 2182,
+          "tcrag_correct": 2719,
+          "wrong_to_right": 941,
+          "right_to_wrong": 404,
+          "same_correctness": 2996,
+          "zero_accuracy": 0.5026491591799125,
+          "tcrag_accuracy": 0.6263533747984336,
+          "delta_accuracy": 0.12370421561852107,
+          "net_correct_gain": 537
+        },
+        "global_mmlu|sw": {
+          "n": 4341,
+          "zero_correct": 1364,
+          "tcrag_correct": 1940,
+          "wrong_to_right": 1184,
+          "right_to_wrong": 608,
+          "same_correctness": 2549,
+          "zero_accuracy": 0.3142133149043999,
+          "tcrag_accuracy": 0.4469016355678415,
+          "delta_accuracy": 0.1326883206634416,
+          "net_correct_gain": 576
+        },
+        "global_mmlu|te": {
+          "n": 4341,
+          "zero_correct": 2101,
+          "tcrag_correct": 2635,
+          "wrong_to_right": 957,
+          "right_to_wrong": 423,
+          "same_correctness": 2961,
+          "zero_accuracy": 0.483989864086616,
+          "tcrag_accuracy": 0.6070029947016816,
+          "delta_accuracy": 0.12301313061506564,
+          "net_correct_gain": 534
+        },
+        "mmlu_prox|bn": {
+          "n": 5222,
+          "zero_correct": 1765,
+          "tcrag_correct": 2312,
+          "wrong_to_right": 882,
+          "right_to_wrong": 335,
+          "same_correctness": 4005,
+          "zero_accuracy": 0.33799310608962085,
+          "tcrag_accuracy": 0.44274224435082343,
+          "delta_accuracy": 0.10474913826120258,
+          "net_correct_gain": 547
+        },
+        "mmlu_prox|hi": {
+          "n": 5222,
+          "zero_correct": 1818,
+          "tcrag_correct": 2328,
+          "wrong_to_right": 876,
+          "right_to_wrong": 366,
+          "same_correctness": 3980,
+          "zero_accuracy": 0.34814247414783606,
+          "tcrag_accuracy": 0.4458062045193413,
+          "delta_accuracy": 0.09766373037150522,
+          "net_correct_gain": 510
+        },
+        "mmlu_prox|ne": {
+          "n": 5222,
+          "zero_correct": 1766,
+          "tcrag_correct": 2331,
+          "wrong_to_right": 906,
+          "right_to_wrong": 341,
+          "same_correctness": 3975,
+          "zero_accuracy": 0.3381846036001532,
+          "tcrag_accuracy": 0.44638069705093836,
+          "delta_accuracy": 0.10819609345078518,
+          "net_correct_gain": 565
+        },
+        "mmlu_prox|sw": {
+          "n": 5222,
+          "zero_correct": 577,
+          "tcrag_correct": 1969,
+          "wrong_to_right": 1740,
+          "right_to_wrong": 348,
+          "same_correctness": 3134,
+          "zero_accuracy": 0.11049406357717349,
+          "tcrag_accuracy": 0.3770585982382229,
+          "delta_accuracy": 0.2665645346610494,
+          "net_correct_gain": 1392
+        },
+        "mmlu_prox|te": {
+          "n": 5222,
+          "zero_correct": 1729,
+          "tcrag_correct": 2328,
+          "wrong_to_right": 906,
+          "right_to_wrong": 307,
+          "same_correctness": 4009,
+          "zero_accuracy": 0.33109919571045576,
+          "tcrag_accuracy": 0.4458062045193413,
+          "delta_accuracy": 0.11470700880888551,
+          "net_correct_gain": 599
+        }
+      }
+    },
+    "transitions": {}
+  }
+}

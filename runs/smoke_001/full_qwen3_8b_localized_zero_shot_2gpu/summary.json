@@ -1,0 +1,3669 @@
+{
+  "accuracy": 0.37454773606608804,
+  "by_dataset": [
+    {
+      "accuracy": 0.47242570836212855,
+      "correct": 10254,
+      "dataset": "global_mmlu",
+      "n": 21705,
+      "parse_rate": 1.0,
+      "parsed": 21705
+    },
+    {
+      "accuracy": 0.29318268862504787,
+      "correct": 7655,
+      "dataset": "mmlu_prox",
+      "n": 26110,
+      "parse_rate": 1.0,
+      "parsed": 26110
+    }
+  ],
+  "by_dataset_language": [
+    {
+      "accuracy": 0.5183137525915688,
+      "correct": 2250,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 4341,
+      "parse_rate": 1.0,
+      "parsed": 4341
+    },
+    {
+      "accuracy": 0.5429624510481456,
+      "correct": 2357,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 4341,
+      "parse_rate": 1.0,
+      "parsed": 4341
+    },
+    {
+      "accuracy": 0.5026491591799125,
+      "correct": 2182,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 4341,
+      "parse_rate": 1.0,
+      "parsed": 4341
+    },
+    {
+      "accuracy": 0.3142133149043999,
+      "correct": 1364,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 4341,
+      "parse_rate": 1.0,
+      "parsed": 4341
+    },
+    {
+      "accuracy": 0.483989864086616,
+      "correct": 2101,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 4341,
+      "parse_rate": 1.0,
+      "parsed": 4341
+    },
+    {
+      "accuracy": 0.33799310608962085,
+      "correct": 1765,
+      "dataset": "mmlu_prox",
+      "language": "bn",
+      "n": 5222,
+      "parse_rate": 1.0,
+      "parsed": 5222
+    },
+    {
+      "accuracy": 0.34814247414783606,
+      "correct": 1818,
+      "dataset": "mmlu_prox",
+      "language": "hi",
+      "n": 5222,
+      "parse_rate": 1.0,
+      "parsed": 5222
+    },
+    {
+      "accuracy": 0.3381846036001532,
+      "correct": 1766,
+      "dataset": "mmlu_prox",
+      "language": "ne",
+      "n": 5222,
+      "parse_rate": 1.0,
+      "parsed": 5222
+    },
+    {
+      "accuracy": 0.11049406357717349,
+      "correct": 577,
+      "dataset": "mmlu_prox",
+      "language": "sw",
+      "n": 5222,
+      "parse_rate": 1.0,
+      "parsed": 5222
+    },
+    {
+      "accuracy": 0.33109919571045576,
+      "correct": 1729,
+      "dataset": "mmlu_prox",
+      "language": "te",
+      "n": 5222,
+      "parse_rate": 1.0,
+      "parsed": 5222
+    }
+  ],
+  "by_language": [
+    {
+      "accuracy": 0.4198473282442748,
+      "correct": 4015,
+      "language": "bn",
+      "n": 9563,
+      "parse_rate": 1.0,
+      "parsed": 9563
+    },
+    {
+      "accuracy": 0.4365784795566245,
+      "correct": 4175,
+      "language": "hi",
+      "n": 9563,
+      "parse_rate": 1.0,
+      "parsed": 9563
+    },
+    {
+      "accuracy": 0.41284115863222837,
+      "correct": 3948,
+      "language": "ne",
+      "n": 9563,
+      "parse_rate": 1.0,
+      "parsed": 9563
+    },
+    {
+      "accuracy": 0.20296977935794208,
+      "correct": 1941,
+      "language": "sw",
+      "n": 9563,
+      "parse_rate": 1.0,
+      "parsed": 9563
+    },
+    {
+      "accuracy": 0.4005019345393705,
+      "correct": 3830,
+      "language": "te",
+      "n": 9563,
+      "parse_rate": 1.0,
+      "parsed": 9563
+    }
+  ],
+  "by_subject": [
+    {
+      "accuracy": 0.4375,
+      "correct": 14,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "abstract_algebra"
+    },
+    {
+      "accuracy": 0.42857142857142855,
+      "correct": 18,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 42,
+      "parse_rate": 1.0,
+      "parsed": 42,
+      "subject": "anatomy"
+    },
+    {
+      "accuracy": 0.7916666666666666,
+      "correct": 38,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 48,
+      "parse_rate": 1.0,
+      "parsed": 48,
+      "subject": "astronomy"
+    },
+    {
+      "accuracy": 0.5625,
+      "correct": 18,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "business_ethics"
+    },
+    {
+      "accuracy": 0.6666666666666666,
+      "correct": 54,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 81,
+      "parse_rate": 1.0,
+      "parsed": 81,
+      "subject": "clinical_knowledge"
+    },
+    {
+      "accuracy": 0.5869565217391305,
+      "correct": 27,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 46,
+      "parse_rate": 1.0,
+      "parsed": 46,
+      "subject": "college_biology"
+    },
+    {
+      "accuracy": 0.59375,
+      "correct": 19,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "college_chemistry"
+    },
+    {
+      "accuracy": 0.46875,
+      "correct": 15,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "college_computer_science"
+    },
+    {
+      "accuracy": 0.40625,
+      "correct": 13,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "college_mathematics"
+    },
+    {
+      "accuracy": 0.5818181818181818,
+      "correct": 32,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 55,
+      "parse_rate": 1.0,
+      "parsed": 55,
+      "subject": "college_medicine"
+    },
+    {
+      "accuracy": 0.5,
+      "correct": 16,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "college_physics"
+    },
+    {
+      "accuracy": 0.6875,
+      "correct": 22,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "computer_security"
+    },
+    {
+      "accuracy": 0.7222222222222222,
+      "correct": 52,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 72,
+      "parse_rate": 1.0,
+      "parsed": 72,
+      "subject": "conceptual_physics"
+    },
+    {
+      "accuracy": 0.32432432432432434,
+      "correct": 12,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 37,
+      "parse_rate": 1.0,
+      "parsed": 37,
+      "subject": "econometrics"
+    },
+    {
+      "accuracy": 0.6222222222222222,
+      "correct": 28,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 45,
+      "parse_rate": 1.0,
+      "parsed": 45,
+      "subject": "electrical_engineering"
+    },
+    {
+      "accuracy": 0.6293103448275862,
+      "correct": 73,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 116,
+      "parse_rate": 1.0,
+      "parsed": 116,
+      "subject": "elementary_mathematics"
+    },
+    {
+      "accuracy": 0.5641025641025641,
+      "correct": 22,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 39,
+      "parse_rate": 1.0,
+      "parsed": 39,
+      "subject": "formal_logic"
+    },
+    {
+      "accuracy": 0.4375,
+      "correct": 14,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "global_facts"
+    },
+    {
+      "accuracy": 0.7052631578947368,
+      "correct": 67,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 95,
+      "parse_rate": 1.0,
+      "parsed": 95,
+      "subject": "high_school_biology"
+    },
+    {
+      "accuracy": 0.6031746031746031,
+      "correct": 38,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 63,
+      "parse_rate": 1.0,
+      "parsed": 63,
+      "subject": "high_school_chemistry"
+    },
+    {
+      "accuracy": 0.71875,
+      "correct": 23,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "high_school_computer_science"
+    },
+    {
+      "accuracy": 0.5294117647058824,
+      "correct": 27,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 51,
+      "parse_rate": 1.0,
+      "parsed": 51,
+      "subject": "high_school_european_history"
+    },
+    {
+      "accuracy": 0.6290322580645161,
+      "correct": 39,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 62,
+      "parse_rate": 1.0,
+      "parsed": 62,
+      "subject": "high_school_geography"
+    },
+    {
+      "accuracy": 0.4918032786885246,
+      "correct": 30,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 61,
+      "parse_rate": 1.0,
+      "parsed": 61,
+      "subject": "high_school_government_and_politics"
+    },
+    {
+      "accuracy": 0.48739495798319327,
+      "correct": 58,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 119,
+      "parse_rate": 1.0,
+      "parsed": 119,
+      "subject": "high_school_macroeconomics"
+    },
+    {
+      "accuracy": 0.4939759036144578,
+      "correct": 41,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 83,
+      "parse_rate": 1.0,
+      "parsed": 83,
+      "subject": "high_school_mathematics"
+    },
+    {
+      "accuracy": 0.6621621621621622,
+      "correct": 49,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 74,
+      "parse_rate": 1.0,
+      "parsed": 74,
+      "subject": "high_school_microeconomics"
+    },
+    {
+      "accuracy": 0.3829787234042553,
+      "correct": 18,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 47,
+      "parse_rate": 1.0,
+      "parsed": 47,
+      "subject": "high_school_physics"
+    },
+    {
+      "accuracy": 0.6121212121212121,
+      "correct": 101,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 165,
+      "parse_rate": 1.0,
+      "parsed": 165,
+      "subject": "high_school_psychology"
+    },
+    {
+      "accuracy": 0.4925373134328358,
+      "correct": 33,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 67,
+      "parse_rate": 1.0,
+      "parsed": 67,
+      "subject": "high_school_statistics"
+    },
+    {
+      "accuracy": 0.46875,
+      "correct": 30,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 64,
+      "parse_rate": 1.0,
+      "parsed": 64,
+      "subject": "high_school_us_history"
+    },
+    {
+      "accuracy": 0.6301369863013698,
+      "correct": 46,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 73,
+      "parse_rate": 1.0,
+      "parsed": 73,
+      "subject": "high_school_world_history"
+    },
+    {
+      "accuracy": 0.5428571428571428,
+      "correct": 38,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 70,
+      "parse_rate": 1.0,
+      "parsed": 70,
+      "subject": "human_aging"
+    },
+    {
+      "accuracy": 0.6190476190476191,
+      "correct": 26,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 42,
+      "parse_rate": 1.0,
+      "parsed": 42,
+      "subject": "human_sexuality"
+    },
+    {
+      "accuracy": 0.6666666666666666,
+      "correct": 26,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 39,
+      "parse_rate": 1.0,
+      "parsed": 39,
+      "subject": "international_law"
+    },
+    {
+      "accuracy": 0.7142857142857143,
+      "correct": 25,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 35,
+      "parse_rate": 1.0,
+      "parsed": 35,
+      "subject": "jurisprudence"
+    },
+    {
+      "accuracy": 0.6730769230769231,
+      "correct": 35,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 52,
+      "parse_rate": 1.0,
+      "parsed": 52,
+      "subject": "logical_fallacies"
+    },
+    {
+      "accuracy": 0.4444444444444444,
+      "correct": 16,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 36,
+      "parse_rate": 1.0,
+      "parsed": 36,
+      "subject": "machine_learning"
+    },
+    {
+      "accuracy": 0.47058823529411764,
+      "correct": 16,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 34,
+      "parse_rate": 1.0,
+      "parsed": 34,
+      "subject": "management"
+    },
+    {
+      "accuracy": 0.6575342465753424,
+      "correct": 48,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 73,
+      "parse_rate": 1.0,
+      "parsed": 73,
+      "subject": "marketing"
+    },
+    {
+      "accuracy": 0.84375,
+      "correct": 27,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "medical_genetics"
+    },
+    {
+      "accuracy": 0.5630252100840336,
+      "correct": 134,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 238,
+      "parse_rate": 1.0,
+      "parsed": 238,
+      "subject": "miscellaneous"
+    },
+    {
+      "accuracy": 0.5943396226415094,
+      "correct": 63,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 106,
+      "parse_rate": 1.0,
+      "parsed": 106,
+      "subject": "moral_disputes"
+    },
+    {
+      "accuracy": 0.24814814814814815,
+      "correct": 67,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 270,
+      "parse_rate": 1.0,
+      "parsed": 270,
+      "subject": "moral_scenarios"
+    },
+    {
+      "accuracy": 0.5106382978723404,
+      "correct": 48,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 94,
+      "parse_rate": 1.0,
+      "parsed": 94,
+      "subject": "nutrition"
+    },
+    {
+      "accuracy": 0.59375,
+      "correct": 57,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 96,
+      "parse_rate": 1.0,
+      "parsed": 96,
+      "subject": "philosophy"
+    },
+    {
+      "accuracy": 0.48,
+      "correct": 48,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 100,
+      "parse_rate": 1.0,
+      "parsed": 100,
+      "subject": "prehistory"
+    },
+    {
+      "accuracy": 0.40229885057471265,
+      "correct": 35,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 87,
+      "parse_rate": 1.0,
+      "parsed": 87,
+      "subject": "professional_accounting"
+    },
+    {
+      "accuracy": 0.3412526997840173,
+      "correct": 158,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 463,
+      "parse_rate": 1.0,
+      "parsed": 463,
+      "subject": "professional_law"
+    },
+    {
+      "accuracy": 0.5595238095238095,
+      "correct": 47,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 84,
+      "parse_rate": 1.0,
+      "parsed": 84,
+      "subject": "professional_medicine"
+    },
+    {
+      "accuracy": 0.43010752688172044,
+      "correct": 80,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 186,
+      "parse_rate": 1.0,
+      "parsed": 186,
+      "subject": "professional_psychology"
+    },
+    {
+      "accuracy": 0.5142857142857142,
+      "correct": 18,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 35,
+      "parse_rate": 1.0,
+      "parsed": 35,
+      "subject": "public_relations"
+    },
+    {
+      "accuracy": 0.4533333333333333,
+      "correct": 34,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 75,
+      "parse_rate": 1.0,
+      "parsed": 75,
+      "subject": "security_studies"
+    },
+    {
+      "accuracy": 0.6825396825396826,
+      "correct": 43,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 63,
+      "parse_rate": 1.0,
+      "parsed": 63,
+      "subject": "sociology"
+    },
+    {
+      "accuracy": 0.625,
+      "correct": 20,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "us_foreign_policy"
+    },
+    {
+      "accuracy": 0.4423076923076923,
+      "correct": 23,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 52,
+      "parse_rate": 1.0,
+      "parsed": 52,
+      "subject": "virology"
+    },
+    {
+      "accuracy": 0.5740740740740741,
+      "correct": 31,
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "n": 54,
+      "parse_rate": 1.0,
+      "parsed": 54,
+      "subject": "world_religions"
+    },
+    {
+      "accuracy": 0.4375,
+      "correct": 14,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "abstract_algebra"
+    },
+    {
+      "accuracy": 0.5476190476190477,
+      "correct": 23,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 42,
+      "parse_rate": 1.0,
+      "parsed": 42,
+      "subject": "anatomy"
+    },
+    {
+      "accuracy": 0.7291666666666666,
+      "correct": 35,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 48,
+      "parse_rate": 1.0,
+      "parsed": 48,
+      "subject": "astronomy"
+    },
+    {
+      "accuracy": 0.5625,
+      "correct": 18,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "business_ethics"
+    },
+    {
+      "accuracy": 0.5679012345679012,
+      "correct": 46,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 81,
+      "parse_rate": 1.0,
+      "parsed": 81,
+      "subject": "clinical_knowledge"
+    },
+    {
+      "accuracy": 0.6521739130434783,
+      "correct": 30,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 46,
+      "parse_rate": 1.0,
+      "parsed": 46,
+      "subject": "college_biology"
+    },
+    {
+      "accuracy": 0.5,
+      "correct": 16,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "college_chemistry"
+    },
+    {
+      "accuracy": 0.40625,
+      "correct": 13,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "college_computer_science"
+    },
+    {
+      "accuracy": 0.46875,
+      "correct": 15,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "college_mathematics"
+    },
+    {
+      "accuracy": 0.6181818181818182,
+      "correct": 34,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 55,
+      "parse_rate": 1.0,
+      "parsed": 55,
+      "subject": "college_medicine"
+    },
+    {
+      "accuracy": 0.46875,
+      "correct": 15,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "college_physics"
+    },
+    {
+      "accuracy": 0.65625,
+      "correct": 21,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "computer_security"
+    },
+    {
+      "accuracy": 0.6666666666666666,
+      "correct": 48,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 72,
+      "parse_rate": 1.0,
+      "parsed": 72,
+      "subject": "conceptual_physics"
+    },
+    {
+      "accuracy": 0.35135135135135137,
+      "correct": 13,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 37,
+      "parse_rate": 1.0,
+      "parsed": 37,
+      "subject": "econometrics"
+    },
+    {
+      "accuracy": 0.5333333333333333,
+      "correct": 24,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 45,
+      "parse_rate": 1.0,
+      "parsed": 45,
+      "subject": "electrical_engineering"
+    },
+    {
+      "accuracy": 0.6724137931034483,
+      "correct": 78,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 116,
+      "parse_rate": 1.0,
+      "parsed": 116,
+      "subject": "elementary_mathematics"
+    },
+    {
+      "accuracy": 0.6666666666666666,
+      "correct": 26,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 39,
+      "parse_rate": 1.0,
+      "parsed": 39,
+      "subject": "formal_logic"
+    },
+    {
+      "accuracy": 0.4375,
+      "correct": 14,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "global_facts"
+    },
+    {
+      "accuracy": 0.7263157894736842,
+      "correct": 69,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 95,
+      "parse_rate": 1.0,
+      "parsed": 95,
+      "subject": "high_school_biology"
+    },
+    {
+      "accuracy": 0.5555555555555556,
+      "correct": 35,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 63,
+      "parse_rate": 1.0,
+      "parsed": 63,
+      "subject": "high_school_chemistry"
+    },
+    {
+      "accuracy": 0.71875,
+      "correct": 23,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "high_school_computer_science"
+    },
+    {
+      "accuracy": 0.6666666666666666,
+      "correct": 34,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 51,
+      "parse_rate": 1.0,
+      "parsed": 51,
+      "subject": "high_school_european_history"
+    },
+    {
+      "accuracy": 0.7096774193548387,
+      "correct": 44,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 62,
+      "parse_rate": 1.0,
+      "parsed": 62,
+      "subject": "high_school_geography"
+    },
+    {
+      "accuracy": 0.5573770491803278,
+      "correct": 34,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 61,
+      "parse_rate": 1.0,
+      "parsed": 61,
+      "subject": "high_school_government_and_politics"
+    },
+    {
+      "accuracy": 0.5210084033613446,
+      "correct": 62,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 119,
+      "parse_rate": 1.0,
+      "parsed": 119,
+      "subject": "high_school_macroeconomics"
+    },
+    {
+      "accuracy": 0.4939759036144578,
+      "correct": 41,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 83,
+      "parse_rate": 1.0,
+      "parsed": 83,
+      "subject": "high_school_mathematics"
+    },
+    {
+      "accuracy": 0.6351351351351351,
+      "correct": 47,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 74,
+      "parse_rate": 1.0,
+      "parsed": 74,
+      "subject": "high_school_microeconomics"
+    },
+    {
+      "accuracy": 0.5106382978723404,
+      "correct": 24,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 47,
+      "parse_rate": 1.0,
+      "parsed": 47,
+      "subject": "high_school_physics"
+    },
+    {
+      "accuracy": 0.6424242424242425,
+      "correct": 106,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 165,
+      "parse_rate": 1.0,
+      "parsed": 165,
+      "subject": "high_school_psychology"
+    },
+    {
+      "accuracy": 0.582089552238806,
+      "correct": 39,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 67,
+      "parse_rate": 1.0,
+      "parsed": 67,
+      "subject": "high_school_statistics"
+    },
+    {
+      "accuracy": 0.640625,
+      "correct": 41,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 64,
+      "parse_rate": 1.0,
+      "parsed": 64,
+      "subject": "high_school_us_history"
+    },
+    {
+      "accuracy": 0.6986301369863014,
+      "correct": 51,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 73,
+      "parse_rate": 1.0,
+      "parsed": 73,
+      "subject": "high_school_world_history"
+    },
+    {
+      "accuracy": 0.5571428571428572,
+      "correct": 39,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 70,
+      "parse_rate": 1.0,
+      "parsed": 70,
+      "subject": "human_aging"
+    },
+    {
+      "accuracy": 0.5238095238095238,
+      "correct": 22,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 42,
+      "parse_rate": 1.0,
+      "parsed": 42,
+      "subject": "human_sexuality"
+    },
+    {
+      "accuracy": 0.6153846153846154,
+      "correct": 24,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 39,
+      "parse_rate": 1.0,
+      "parsed": 39,
+      "subject": "international_law"
+    },
+    {
+      "accuracy": 0.7142857142857143,
+      "correct": 25,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 35,
+      "parse_rate": 1.0,
+      "parsed": 35,
+      "subject": "jurisprudence"
+    },
+    {
+      "accuracy": 0.5576923076923077,
+      "correct": 29,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 52,
+      "parse_rate": 1.0,
+      "parsed": 52,
+      "subject": "logical_fallacies"
+    },
+    {
+      "accuracy": 0.4444444444444444,
+      "correct": 16,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 36,
+      "parse_rate": 1.0,
+      "parsed": 36,
+      "subject": "machine_learning"
+    },
+    {
+      "accuracy": 0.6470588235294118,
+      "correct": 22,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 34,
+      "parse_rate": 1.0,
+      "parsed": 34,
+      "subject": "management"
+    },
+    {
+      "accuracy": 0.726027397260274,
+      "correct": 53,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 73,
+      "parse_rate": 1.0,
+      "parsed": 73,
+      "subject": "marketing"
+    },
+    {
+      "accuracy": 0.5625,
+      "correct": 18,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "medical_genetics"
+    },
+    {
+      "accuracy": 0.6428571428571429,
+      "correct": 153,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 238,
+      "parse_rate": 1.0,
+      "parsed": 238,
+      "subject": "miscellaneous"
+    },
+    {
+      "accuracy": 0.6037735849056604,
+      "correct": 64,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 106,
+      "parse_rate": 1.0,
+      "parsed": 106,
+      "subject": "moral_disputes"
+    },
+    {
+      "accuracy": 0.3111111111111111,
+      "correct": 84,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 270,
+      "parse_rate": 1.0,
+      "parsed": 270,
+      "subject": "moral_scenarios"
+    },
+    {
+      "accuracy": 0.5851063829787234,
+      "correct": 55,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 94,
+      "parse_rate": 1.0,
+      "parsed": 94,
+      "subject": "nutrition"
+    },
+    {
+      "accuracy": 0.6041666666666666,
+      "correct": 58,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 96,
+      "parse_rate": 1.0,
+      "parsed": 96,
+      "subject": "philosophy"
+    },
+    {
+      "accuracy": 0.53,
+      "correct": 53,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 100,
+      "parse_rate": 1.0,
+      "parsed": 100,
+      "subject": "prehistory"
+    },
+    {
+      "accuracy": 0.41379310344827586,
+      "correct": 36,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 87,
+      "parse_rate": 1.0,
+      "parsed": 87,
+      "subject": "professional_accounting"
+    },
+    {
+      "accuracy": 0.367170626349892,
+      "correct": 170,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 463,
+      "parse_rate": 1.0,
+      "parsed": 463,
+      "subject": "professional_law"
+    },
+    {
+      "accuracy": 0.5357142857142857,
+      "correct": 45,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 84,
+      "parse_rate": 1.0,
+      "parsed": 84,
+      "subject": "professional_medicine"
+    },
+    {
+      "accuracy": 0.45161290322580644,
+      "correct": 84,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 186,
+      "parse_rate": 1.0,
+      "parsed": 186,
+      "subject": "professional_psychology"
+    },
+    {
+      "accuracy": 0.42857142857142855,
+      "correct": 15,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 35,
+      "parse_rate": 1.0,
+      "parsed": 35,
+      "subject": "public_relations"
+    },
+    {
+      "accuracy": 0.6,
+      "correct": 45,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 75,
+      "parse_rate": 1.0,
+      "parsed": 75,
+      "subject": "security_studies"
+    },
+    {
+      "accuracy": 0.6349206349206349,
+      "correct": 40,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 63,
+      "parse_rate": 1.0,
+      "parsed": 63,
+      "subject": "sociology"
+    },
+    {
+      "accuracy": 0.5625,
+      "correct": 18,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "us_foreign_policy"
+    },
+    {
+      "accuracy": 0.4230769230769231,
+      "correct": 22,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 52,
+      "parse_rate": 1.0,
+      "parsed": 52,
+      "subject": "virology"
+    },
+    {
+      "accuracy": 0.6296296296296297,
+      "correct": 34,
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "n": 54,
+      "parse_rate": 1.0,
+      "parsed": 54,
+      "subject": "world_religions"
+    },
+    {
+      "accuracy": 0.46875,
+      "correct": 15,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "abstract_algebra"
+    },
+    {
+      "accuracy": 0.47619047619047616,
+      "correct": 20,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 42,
+      "parse_rate": 1.0,
+      "parsed": 42,
+      "subject": "anatomy"
+    },
+    {
+      "accuracy": 0.7291666666666666,
+      "correct": 35,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 48,
+      "parse_rate": 1.0,
+      "parsed": 48,
+      "subject": "astronomy"
+    },
+    {
+      "accuracy": 0.375,
+      "correct": 12,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "business_ethics"
+    },
+    {
+      "accuracy": 0.6419753086419753,
+      "correct": 52,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 81,
+      "parse_rate": 1.0,
+      "parsed": 81,
+      "subject": "clinical_knowledge"
+    },
+    {
+      "accuracy": 0.5217391304347826,
+      "correct": 24,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 46,
+      "parse_rate": 1.0,
+      "parsed": 46,
+      "subject": "college_biology"
+    },
+    {
+      "accuracy": 0.53125,
+      "correct": 17,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "college_chemistry"
+    },
+    {
+      "accuracy": 0.34375,
+      "correct": 11,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "college_computer_science"
+    },
+    {
+      "accuracy": 0.375,
+      "correct": 12,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "college_mathematics"
+    },
+    {
+      "accuracy": 0.5636363636363636,
+      "correct": 31,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 55,
+      "parse_rate": 1.0,
+      "parsed": 55,
+      "subject": "college_medicine"
+    },
+    {
+      "accuracy": 0.5625,
+      "correct": 18,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "college_physics"
+    },
+    {
+      "accuracy": 0.625,
+      "correct": 20,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "computer_security"
+    },
+    {
+      "accuracy": 0.6944444444444444,
+      "correct": 50,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 72,
+      "parse_rate": 1.0,
+      "parsed": 72,
+      "subject": "conceptual_physics"
+    },
+    {
+      "accuracy": 0.2972972972972973,
+      "correct": 11,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 37,
+      "parse_rate": 1.0,
+      "parsed": 37,
+      "subject": "econometrics"
+    },
+    {
+      "accuracy": 0.5777777777777777,
+      "correct": 26,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 45,
+      "parse_rate": 1.0,
+      "parsed": 45,
+      "subject": "electrical_engineering"
+    },
+    {
+      "accuracy": 0.6810344827586207,
+      "correct": 79,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 116,
+      "parse_rate": 1.0,
+      "parsed": 116,
+      "subject": "elementary_mathematics"
+    },
+    {
+      "accuracy": 0.46153846153846156,
+      "correct": 18,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 39,
+      "parse_rate": 1.0,
+      "parsed": 39,
+      "subject": "formal_logic"
+    },
+    {
+      "accuracy": 0.28125,
+      "correct": 9,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "global_facts"
+    },
+    {
+      "accuracy": 0.6631578947368421,
+      "correct": 63,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 95,
+      "parse_rate": 1.0,
+      "parsed": 95,
+      "subject": "high_school_biology"
+    },
+    {
+      "accuracy": 0.5079365079365079,
+      "correct": 32,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 63,
+      "parse_rate": 1.0,
+      "parsed": 63,
+      "subject": "high_school_chemistry"
+    },
+    {
+      "accuracy": 0.71875,
+      "correct": 23,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "high_school_computer_science"
+    },
+    {
+      "accuracy": 0.6862745098039216,
+      "correct": 35,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 51,
+      "parse_rate": 1.0,
+      "parsed": 51,
+      "subject": "high_school_european_history"
+    },
+    {
+      "accuracy": 0.5806451612903226,
+      "correct": 36,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 62,
+      "parse_rate": 1.0,
+      "parsed": 62,
+      "subject": "high_school_geography"
+    },
+    {
+      "accuracy": 0.5245901639344263,
+      "correct": 32,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 61,
+      "parse_rate": 1.0,
+      "parsed": 61,
+      "subject": "high_school_government_and_politics"
+    },
+    {
+      "accuracy": 0.47058823529411764,
+      "correct": 56,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 119,
+      "parse_rate": 1.0,
+      "parsed": 119,
+      "subject": "high_school_macroeconomics"
+    },
+    {
+      "accuracy": 0.43373493975903615,
+      "correct": 36,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 83,
+      "parse_rate": 1.0,
+      "parsed": 83,
+      "subject": "high_school_mathematics"
+    },
+    {
+      "accuracy": 0.6486486486486487,
+      "correct": 48,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 74,
+      "parse_rate": 1.0,
+      "parsed": 74,
+      "subject": "high_school_microeconomics"
+    },
+    {
+      "accuracy": 0.46808510638297873,
+      "correct": 22,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 47,
+      "parse_rate": 1.0,
+      "parsed": 47,
+      "subject": "high_school_physics"
+    },
+    {
+      "accuracy": 0.703030303030303,
+      "correct": 116,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 165,
+      "parse_rate": 1.0,
+      "parsed": 165,
+      "subject": "high_school_psychology"
+    },
+    {
+      "accuracy": 0.5223880597014925,
+      "correct": 35,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 67,
+      "parse_rate": 1.0,
+      "parsed": 67,
+      "subject": "high_school_statistics"
+    },
+    {
+      "accuracy": 0.53125,
+      "correct": 34,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 64,
+      "parse_rate": 1.0,
+      "parsed": 64,
+      "subject": "high_school_us_history"
+    },
+    {
+      "accuracy": 0.6438356164383562,
+      "correct": 47,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 73,
+      "parse_rate": 1.0,
+      "parsed": 73,
+      "subject": "high_school_world_history"
+    },
+    {
+      "accuracy": 0.38571428571428573,
+      "correct": 27,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 70,
+      "parse_rate": 1.0,
+      "parsed": 70,
+      "subject": "human_aging"
+    },
+    {
+      "accuracy": 0.40476190476190477,
+      "correct": 17,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 42,
+      "parse_rate": 1.0,
+      "parsed": 42,
+      "subject": "human_sexuality"
+    },
+    {
+      "accuracy": 0.5897435897435898,
+      "correct": 23,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 39,
+      "parse_rate": 1.0,
+      "parsed": 39,
+      "subject": "international_law"
+    },
+    {
+      "accuracy": 0.6571428571428571,
+      "correct": 23,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 35,
+      "parse_rate": 1.0,
+      "parsed": 35,
+      "subject": "jurisprudence"
+    },
+    {
+      "accuracy": 0.5769230769230769,
+      "correct": 30,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 52,
+      "parse_rate": 1.0,
+      "parsed": 52,
+      "subject": "logical_fallacies"
+    },
+    {
+      "accuracy": 0.2777777777777778,
+      "correct": 10,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 36,
+      "parse_rate": 1.0,
+      "parsed": 36,
+      "subject": "machine_learning"
+    },
+    {
+      "accuracy": 0.4117647058823529,
+      "correct": 14,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 34,
+      "parse_rate": 1.0,
+      "parsed": 34,
+      "subject": "management"
+    },
+    {
+      "accuracy": 0.6986301369863014,
+      "correct": 51,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 73,
+      "parse_rate": 1.0,
+      "parsed": 73,
+      "subject": "marketing"
+    },
+    {
+      "accuracy": 0.625,
+      "correct": 20,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "medical_genetics"
+    },
+    {
+      "accuracy": 0.5798319327731093,
+      "correct": 138,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 238,
+      "parse_rate": 1.0,
+      "parsed": 238,
+      "subject": "miscellaneous"
+    },
+    {
+      "accuracy": 0.4716981132075472,
+      "correct": 50,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 106,
+      "parse_rate": 1.0,
+      "parsed": 106,
+      "subject": "moral_disputes"
+    },
+    {
+      "accuracy": 0.26666666666666666,
+      "correct": 72,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 270,
+      "parse_rate": 1.0,
+      "parsed": 270,
+      "subject": "moral_scenarios"
+    },
+    {
+      "accuracy": 0.5957446808510638,
+      "correct": 56,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 94,
+      "parse_rate": 1.0,
+      "parsed": 94,
+      "subject": "nutrition"
+    },
+    {
+      "accuracy": 0.5208333333333334,
+      "correct": 50,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 96,
+      "parse_rate": 1.0,
+      "parsed": 96,
+      "subject": "philosophy"
+    },
+    {
+      "accuracy": 0.46,
+      "correct": 46,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 100,
+      "parse_rate": 1.0,
+      "parsed": 100,
+      "subject": "prehistory"
+    },
+    {
+      "accuracy": 0.39080459770114945,
+      "correct": 34,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 87,
+      "parse_rate": 1.0,
+      "parsed": 87,
+      "subject": "professional_accounting"
+    },
+    {
+      "accuracy": 0.31533477321814257,
+      "correct": 146,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 463,
+      "parse_rate": 1.0,
+      "parsed": 463,
+      "subject": "professional_law"
+    },
+    {
+      "accuracy": 0.5476190476190477,
+      "correct": 46,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 84,
+      "parse_rate": 1.0,
+      "parsed": 84,
+      "subject": "professional_medicine"
+    },
+    {
+      "accuracy": 0.45698924731182794,
+      "correct": 85,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 186,
+      "parse_rate": 1.0,
+      "parsed": 186,
+      "subject": "professional_psychology"
+    },
+    {
+      "accuracy": 0.5714285714285714,
+      "correct": 20,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 35,
+      "parse_rate": 1.0,
+      "parsed": 35,
+      "subject": "public_relations"
+    },
+    {
+      "accuracy": 0.5066666666666667,
+      "correct": 38,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 75,
+      "parse_rate": 1.0,
+      "parsed": 75,
+      "subject": "security_studies"
+    },
+    {
+      "accuracy": 0.6031746031746031,
+      "correct": 38,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 63,
+      "parse_rate": 1.0,
+      "parsed": 63,
+      "subject": "sociology"
+    },
+    {
+      "accuracy": 0.625,
+      "correct": 20,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "us_foreign_policy"
+    },
+    {
+      "accuracy": 0.4230769230769231,
+      "correct": 22,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 52,
+      "parse_rate": 1.0,
+      "parsed": 52,
+      "subject": "virology"
+    },
+    {
+      "accuracy": 0.5740740740740741,
+      "correct": 31,
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "n": 54,
+      "parse_rate": 1.0,
+      "parsed": 54,
+      "subject": "world_religions"
+    },
+    {
+      "accuracy": 0.125,
+      "correct": 4,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "abstract_algebra"
+    },
+    {
+      "accuracy": 0.38095238095238093,
+      "correct": 16,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 42,
+      "parse_rate": 1.0,
+      "parsed": 42,
+      "subject": "anatomy"
+    },
+    {
+      "accuracy": 0.3125,
+      "correct": 15,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 48,
+      "parse_rate": 1.0,
+      "parsed": 48,
+      "subject": "astronomy"
+    },
+    {
+      "accuracy": 0.46875,
+      "correct": 15,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "business_ethics"
+    },
+    {
+      "accuracy": 0.2716049382716049,
+      "correct": 22,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 81,
+      "parse_rate": 1.0,
+      "parsed": 81,
+      "subject": "clinical_knowledge"
+    },
+    {
+      "accuracy": 0.32608695652173914,
+      "correct": 15,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 46,
+      "parse_rate": 1.0,
+      "parsed": 46,
+      "subject": "college_biology"
+    },
+    {
+      "accuracy": 0.21875,
+      "correct": 7,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "college_chemistry"
+    },
+    {
+      "accuracy": 0.15625,
+      "correct": 5,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "college_computer_science"
+    },
+    {
+      "accuracy": 0.28125,
+      "correct": 9,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "college_mathematics"
+    },
+    {
+      "accuracy": 0.4,
+      "correct": 22,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 55,
+      "parse_rate": 1.0,
+      "parsed": 55,
+      "subject": "college_medicine"
+    },
+    {
+      "accuracy": 0.3125,
+      "correct": 10,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "college_physics"
+    },
+    {
+      "accuracy": 0.4375,
+      "correct": 14,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "computer_security"
+    },
+    {
+      "accuracy": 0.3611111111111111,
+      "correct": 26,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 72,
+      "parse_rate": 1.0,
+      "parsed": 72,
+      "subject": "conceptual_physics"
+    },
+    {
+      "accuracy": 0.35135135135135137,
+      "correct": 13,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 37,
+      "parse_rate": 1.0,
+      "parsed": 37,
+      "subject": "econometrics"
+    },
+    {
+      "accuracy": 0.35555555555555557,
+      "correct": 16,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 45,
+      "parse_rate": 1.0,
+      "parsed": 45,
+      "subject": "electrical_engineering"
+    },
+    {
+      "accuracy": 0.3448275862068966,
+      "correct": 40,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 116,
+      "parse_rate": 1.0,
+      "parsed": 116,
+      "subject": "elementary_mathematics"
+    },
+    {
+      "accuracy": 0.38461538461538464,
+      "correct": 15,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 39,
+      "parse_rate": 1.0,
+      "parsed": 39,
+      "subject": "formal_logic"
+    },
+    {
+      "accuracy": 0.21875,
+      "correct": 7,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "global_facts"
+    },
+    {
+      "accuracy": 0.3368421052631579,
+      "correct": 32,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 95,
+      "parse_rate": 1.0,
+      "parsed": 95,
+      "subject": "high_school_biology"
+    },
+    {
+      "accuracy": 0.2698412698412698,
+      "correct": 17,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 63,
+      "parse_rate": 1.0,
+      "parsed": 63,
+      "subject": "high_school_chemistry"
+    },
+    {
+      "accuracy": 0.28125,
+      "correct": 9,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "high_school_computer_science"
+    },
+    {
+      "accuracy": 0.49019607843137253,
+      "correct": 25,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 51,
+      "parse_rate": 1.0,
+      "parsed": 51,
+      "subject": "high_school_european_history"
+    },
+    {
+      "accuracy": 0.3387096774193548,
+      "correct": 21,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 62,
+      "parse_rate": 1.0,
+      "parsed": 62,
+      "subject": "high_school_geography"
+    },
+    {
+      "accuracy": 0.29508196721311475,
+      "correct": 18,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 61,
+      "parse_rate": 1.0,
+      "parsed": 61,
+      "subject": "high_school_government_and_politics"
+    },
+    {
+      "accuracy": 0.3445378151260504,
+      "correct": 41,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 119,
+      "parse_rate": 1.0,
+      "parsed": 119,
+      "subject": "high_school_macroeconomics"
+    },
+    {
+      "accuracy": 0.20481927710843373,
+      "correct": 17,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 83,
+      "parse_rate": 1.0,
+      "parsed": 83,
+      "subject": "high_school_mathematics"
+    },
+    {
+      "accuracy": 0.35135135135135137,
+      "correct": 26,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 74,
+      "parse_rate": 1.0,
+      "parsed": 74,
+      "subject": "high_school_microeconomics"
+    },
+    {
+      "accuracy": 0.19148936170212766,
+      "correct": 9,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 47,
+      "parse_rate": 1.0,
+      "parsed": 47,
+      "subject": "high_school_physics"
+    },
+    {
+      "accuracy": 0.2909090909090909,
+      "correct": 48,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 165,
+      "parse_rate": 1.0,
+      "parsed": 165,
+      "subject": "high_school_psychology"
+    },
+    {
+      "accuracy": 0.1791044776119403,
+      "correct": 12,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 67,
+      "parse_rate": 1.0,
+      "parsed": 67,
+      "subject": "high_school_statistics"
+    },
+    {
+      "accuracy": 0.359375,
+      "correct": 23,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 64,
+      "parse_rate": 1.0,
+      "parsed": 64,
+      "subject": "high_school_us_history"
+    },
+    {
+      "accuracy": 0.3013698630136986,
+      "correct": 22,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 73,
+      "parse_rate": 1.0,
+      "parsed": 73,
+      "subject": "high_school_world_history"
+    },
+    {
+      "accuracy": 0.2571428571428571,
+      "correct": 18,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 70,
+      "parse_rate": 1.0,
+      "parsed": 70,
+      "subject": "human_aging"
+    },
+    {
+      "accuracy": 0.35714285714285715,
+      "correct": 15,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 42,
+      "parse_rate": 1.0,
+      "parsed": 42,
+      "subject": "human_sexuality"
+    },
+    {
+      "accuracy": 0.38461538461538464,
+      "correct": 15,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 39,
+      "parse_rate": 1.0,
+      "parsed": 39,
+      "subject": "international_law"
+    },
+    {
+      "accuracy": 0.37142857142857144,
+      "correct": 13,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 35,
+      "parse_rate": 1.0,
+      "parsed": 35,
+      "subject": "jurisprudence"
+    },
+    {
+      "accuracy": 0.28846153846153844,
+      "correct": 15,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 52,
+      "parse_rate": 1.0,
+      "parsed": 52,
+      "subject": "logical_fallacies"
+    },
+    {
+      "accuracy": 0.3333333333333333,
+      "correct": 12,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 36,
+      "parse_rate": 1.0,
+      "parsed": 36,
+      "subject": "machine_learning"
+    },
+    {
+      "accuracy": 0.20588235294117646,
+      "correct": 7,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 34,
+      "parse_rate": 1.0,
+      "parsed": 34,
+      "subject": "management"
+    },
+    {
+      "accuracy": 0.410958904109589,
+      "correct": 30,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 73,
+      "parse_rate": 1.0,
+      "parsed": 73,
+      "subject": "marketing"
+    },
+    {
+      "accuracy": 0.53125,
+      "correct": 17,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "medical_genetics"
+    },
+    {
+      "accuracy": 0.36134453781512604,
+      "correct": 86,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 238,
+      "parse_rate": 1.0,
+      "parsed": 238,
+      "subject": "miscellaneous"
+    },
+    {
+      "accuracy": 0.3113207547169811,
+      "correct": 33,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 106,
+      "parse_rate": 1.0,
+      "parsed": 106,
+      "subject": "moral_disputes"
+    },
+    {
+      "accuracy": 0.3,
+      "correct": 81,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 270,
+      "parse_rate": 1.0,
+      "parsed": 270,
+      "subject": "moral_scenarios"
+    },
+    {
+      "accuracy": 0.40425531914893614,
+      "correct": 38,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 94,
+      "parse_rate": 1.0,
+      "parsed": 94,
+      "subject": "nutrition"
+    },
+    {
+      "accuracy": 0.3229166666666667,
+      "correct": 31,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 96,
+      "parse_rate": 1.0,
+      "parsed": 96,
+      "subject": "philosophy"
+    },
+    {
+      "accuracy": 0.34,
+      "correct": 34,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 100,
+      "parse_rate": 1.0,
+      "parsed": 100,
+      "subject": "prehistory"
+    },
+    {
+      "accuracy": 0.26436781609195403,
+      "correct": 23,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 87,
+      "parse_rate": 1.0,
+      "parsed": 87,
+      "subject": "professional_accounting"
+    },
+    {
+      "accuracy": 0.26997840172786175,
+      "correct": 125,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 463,
+      "parse_rate": 1.0,
+      "parsed": 463,
+      "subject": "professional_law"
+    },
+    {
+      "accuracy": 0.3333333333333333,
+      "correct": 28,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 84,
+      "parse_rate": 1.0,
+      "parsed": 84,
+      "subject": "professional_medicine"
+    },
+    {
+      "accuracy": 0.3010752688172043,
+      "correct": 56,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 186,
+      "parse_rate": 1.0,
+      "parsed": 186,
+      "subject": "professional_psychology"
+    },
+    {
+      "accuracy": 0.2,
+      "correct": 7,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 35,
+      "parse_rate": 1.0,
+      "parsed": 35,
+      "subject": "public_relations"
+    },
+    {
+      "accuracy": 0.24,
+      "correct": 18,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 75,
+      "parse_rate": 1.0,
+      "parsed": 75,
+      "subject": "security_studies"
+    },
+    {
+      "accuracy": 0.25396825396825395,
+      "correct": 16,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 63,
+      "parse_rate": 1.0,
+      "parsed": 63,
+      "subject": "sociology"
+    },
+    {
+      "accuracy": 0.34375,
+      "correct": 11,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "us_foreign_policy"
+    },
+    {
+      "accuracy": 0.3269230769230769,
+      "correct": 17,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 52,
+      "parse_rate": 1.0,
+      "parsed": 52,
+      "subject": "virology"
+    },
+    {
+      "accuracy": 0.5,
+      "correct": 27,
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "n": 54,
+      "parse_rate": 1.0,
+      "parsed": 54,
+      "subject": "world_religions"
+    },
+    {
+      "accuracy": 0.5625,
+      "correct": 18,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "abstract_algebra"
+    },
+    {
+      "accuracy": 0.42857142857142855,
+      "correct": 18,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 42,
+      "parse_rate": 1.0,
+      "parsed": 42,
+      "subject": "anatomy"
+    },
+    {
+      "accuracy": 0.6458333333333334,
+      "correct": 31,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 48,
+      "parse_rate": 1.0,
+      "parsed": 48,
+      "subject": "astronomy"
+    },
+    {
+      "accuracy": 0.53125,
+      "correct": 17,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "business_ethics"
+    },
+    {
+      "accuracy": 0.48148148148148145,
+      "correct": 39,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 81,
+      "parse_rate": 1.0,
+      "parsed": 81,
+      "subject": "clinical_knowledge"
+    },
+    {
+      "accuracy": 0.5434782608695652,
+      "correct": 25,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 46,
+      "parse_rate": 1.0,
+      "parsed": 46,
+      "subject": "college_biology"
+    },
+    {
+      "accuracy": 0.5625,
+      "correct": 18,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "college_chemistry"
+    },
+    {
+      "accuracy": 0.5,
+      "correct": 16,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "college_computer_science"
+    },
+    {
+      "accuracy": 0.28125,
+      "correct": 9,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "college_mathematics"
+    },
+    {
+      "accuracy": 0.4727272727272727,
+      "correct": 26,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 55,
+      "parse_rate": 1.0,
+      "parsed": 55,
+      "subject": "college_medicine"
+    },
+    {
+      "accuracy": 0.4375,
+      "correct": 14,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "college_physics"
+    },
+    {
+      "accuracy": 0.65625,
+      "correct": 21,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "computer_security"
+    },
+    {
+      "accuracy": 0.5833333333333334,
+      "correct": 42,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 72,
+      "parse_rate": 1.0,
+      "parsed": 72,
+      "subject": "conceptual_physics"
+    },
+    {
+      "accuracy": 0.35135135135135137,
+      "correct": 13,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 37,
+      "parse_rate": 1.0,
+      "parsed": 37,
+      "subject": "econometrics"
+    },
+    {
+      "accuracy": 0.6222222222222222,
+      "correct": 28,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 45,
+      "parse_rate": 1.0,
+      "parsed": 45,
+      "subject": "electrical_engineering"
+    },
+    {
+      "accuracy": 0.603448275862069,
+      "correct": 70,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 116,
+      "parse_rate": 1.0,
+      "parsed": 116,
+      "subject": "elementary_mathematics"
+    },
+    {
+      "accuracy": 0.5641025641025641,
+      "correct": 22,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 39,
+      "parse_rate": 1.0,
+      "parsed": 39,
+      "subject": "formal_logic"
+    },
+    {
+      "accuracy": 0.375,
+      "correct": 12,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "global_facts"
+    },
+    {
+      "accuracy": 0.6,
+      "correct": 57,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 95,
+      "parse_rate": 1.0,
+      "parsed": 95,
+      "subject": "high_school_biology"
+    },
+    {
+      "accuracy": 0.47619047619047616,
+      "correct": 30,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 63,
+      "parse_rate": 1.0,
+      "parsed": 63,
+      "subject": "high_school_chemistry"
+    },
+    {
+      "accuracy": 0.75,
+      "correct": 24,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "high_school_computer_science"
+    },
+    {
+      "accuracy": 0.6862745098039216,
+      "correct": 35,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 51,
+      "parse_rate": 1.0,
+      "parsed": 51,
+      "subject": "high_school_european_history"
+    },
+    {
+      "accuracy": 0.6451612903225806,
+      "correct": 40,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 62,
+      "parse_rate": 1.0,
+      "parsed": 62,
+      "subject": "high_school_geography"
+    },
+    {
+      "accuracy": 0.47540983606557374,
+      "correct": 29,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 61,
+      "parse_rate": 1.0,
+      "parsed": 61,
+      "subject": "high_school_government_and_politics"
+    },
+    {
+      "accuracy": 0.46218487394957986,
+      "correct": 55,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 119,
+      "parse_rate": 1.0,
+      "parsed": 119,
+      "subject": "high_school_macroeconomics"
+    },
+    {
+      "accuracy": 0.39759036144578314,
+      "correct": 33,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 83,
+      "parse_rate": 1.0,
+      "parsed": 83,
+      "subject": "high_school_mathematics"
+    },
+    {
+      "accuracy": 0.6216216216216216,
+      "correct": 46,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 74,
+      "parse_rate": 1.0,
+      "parsed": 74,
+      "subject": "high_school_microeconomics"
+    },
+    {
+      "accuracy": 0.3617021276595745,
+      "correct": 17,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 47,
+      "parse_rate": 1.0,
+      "parsed": 47,
+      "subject": "high_school_physics"
+    },
+    {
+      "accuracy": 0.5757575757575758,
+      "correct": 95,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 165,
+      "parse_rate": 1.0,
+      "parsed": 165,
+      "subject": "high_school_psychology"
+    },
+    {
+      "accuracy": 0.417910447761194,
+      "correct": 28,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 67,
+      "parse_rate": 1.0,
+      "parsed": 67,
+      "subject": "high_school_statistics"
+    },
+    {
+      "accuracy": 0.53125,
+      "correct": 34,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 64,
+      "parse_rate": 1.0,
+      "parsed": 64,
+      "subject": "high_school_us_history"
+    },
+    {
+      "accuracy": 0.6712328767123288,
+      "correct": 49,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 73,
+      "parse_rate": 1.0,
+      "parsed": 73,
+      "subject": "high_school_world_history"
+    },
+    {
+      "accuracy": 0.4857142857142857,
+      "correct": 34,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 70,
+      "parse_rate": 1.0,
+      "parsed": 70,
+      "subject": "human_aging"
+    },
+    {
+      "accuracy": 0.40476190476190477,
+      "correct": 17,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 42,
+      "parse_rate": 1.0,
+      "parsed": 42,
+      "subject": "human_sexuality"
+    },
+    {
+      "accuracy": 0.6666666666666666,
+      "correct": 26,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 39,
+      "parse_rate": 1.0,
+      "parsed": 39,
+      "subject": "international_law"
+    },
+    {
+      "accuracy": 0.5714285714285714,
+      "correct": 20,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 35,
+      "parse_rate": 1.0,
+      "parsed": 35,
+      "subject": "jurisprudence"
+    },
+    {
+      "accuracy": 0.5384615384615384,
+      "correct": 28,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 52,
+      "parse_rate": 1.0,
+      "parsed": 52,
+      "subject": "logical_fallacies"
+    },
+    {
+      "accuracy": 0.4444444444444444,
+      "correct": 16,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 36,
+      "parse_rate": 1.0,
+      "parsed": 36,
+      "subject": "machine_learning"
+    },
+    {
+      "accuracy": 0.5882352941176471,
+      "correct": 20,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 34,
+      "parse_rate": 1.0,
+      "parsed": 34,
+      "subject": "management"
+    },
+    {
+      "accuracy": 0.6301369863013698,
+      "correct": 46,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 73,
+      "parse_rate": 1.0,
+      "parsed": 73,
+      "subject": "marketing"
+    },
+    {
+      "accuracy": 0.6875,
+      "correct": 22,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "medical_genetics"
+    },
+    {
+      "accuracy": 0.5252100840336135,
+      "correct": 125,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 238,
+      "parse_rate": 1.0,
+      "parsed": 238,
+      "subject": "miscellaneous"
+    },
+    {
+      "accuracy": 0.4811320754716981,
+      "correct": 51,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 106,
+      "parse_rate": 1.0,
+      "parsed": 106,
+      "subject": "moral_disputes"
+    },
+    {
+      "accuracy": 0.2518518518518518,
+      "correct": 68,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 270,
+      "parse_rate": 1.0,
+      "parsed": 270,
+      "subject": "moral_scenarios"
+    },
+    {
+      "accuracy": 0.5319148936170213,
+      "correct": 50,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 94,
+      "parse_rate": 1.0,
+      "parsed": 94,
+      "subject": "nutrition"
+    },
+    {
+      "accuracy": 0.4479166666666667,
+      "correct": 43,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 96,
+      "parse_rate": 1.0,
+      "parsed": 96,
+      "subject": "philosophy"
+    },
+    {
+      "accuracy": 0.49,
+      "correct": 49,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 100,
+      "parse_rate": 1.0,
+      "parsed": 100,
+      "subject": "prehistory"
+    },
+    {
+      "accuracy": 0.3563218390804598,
+      "correct": 31,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 87,
+      "parse_rate": 1.0,
+      "parsed": 87,
+      "subject": "professional_accounting"
+    },
+    {
+      "accuracy": 0.3434125269978402,
+      "correct": 159,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 463,
+      "parse_rate": 1.0,
+      "parsed": 463,
+      "subject": "professional_law"
+    },
+    {
+      "accuracy": 0.4642857142857143,
+      "correct": 39,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 84,
+      "parse_rate": 1.0,
+      "parsed": 84,
+      "subject": "professional_medicine"
+    },
+    {
+      "accuracy": 0.46236559139784944,
+      "correct": 86,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 186,
+      "parse_rate": 1.0,
+      "parsed": 186,
+      "subject": "professional_psychology"
+    },
+    {
+      "accuracy": 0.5714285714285714,
+      "correct": 20,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 35,
+      "parse_rate": 1.0,
+      "parsed": 35,
+      "subject": "public_relations"
+    },
+    {
+      "accuracy": 0.49333333333333335,
+      "correct": 37,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 75,
+      "parse_rate": 1.0,
+      "parsed": 75,
+      "subject": "security_studies"
+    },
+    {
+      "accuracy": 0.5714285714285714,
+      "correct": 36,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 63,
+      "parse_rate": 1.0,
+      "parsed": 63,
+      "subject": "sociology"
+    },
+    {
+      "accuracy": 0.65625,
+      "correct": 21,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 32,
+      "parse_rate": 1.0,
+      "parsed": 32,
+      "subject": "us_foreign_policy"
+    },
+    {
+      "accuracy": 0.36538461538461536,
+      "correct": 19,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 52,
+      "parse_rate": 1.0,
+      "parsed": 52,
+      "subject": "virology"
+    },
+    {
+      "accuracy": 0.5,
+      "correct": 27,
+      "dataset": "global_mmlu",
+      "language": "te",
+      "n": 54,
+      "parse_rate": 1.0,
+      "parsed": 54,
+      "subject": "world_religions"
+    },
+    {
+      "accuracy": 0.6581196581196581,
+      "correct": 231,
+      "dataset": "mmlu_prox",
+      "language": "bn",
+      "n": 351,
+      "parse_rate": 1.0,
+      "parsed": 351,
+      "subject": "college_biology"
+    },
+    {
+      "accuracy": 0.25052410901467503,
+      "correct": 239,
+      "dataset": "mmlu_prox",
+      "language": "bn",
+      "n": 954,
+      "parse_rate": 1.0,
+      "parsed": 954,
+      "subject": "college_chemistry"
+    },
+    {
+      "accuracy": 0.36764705882352944,
+      "correct": 50,
+      "dataset": "mmlu_prox",
+      "language": "bn",
+      "n": 136,
+      "parse_rate": 1.0,
+      "parsed": 136,
+      "subject": "college_computer_science"
+    },
+    {
+      "accuracy": 0.26497695852534564,
+      "correct": 115,
+      "dataset": "mmlu_prox",
+      "language": "bn",
+      "n": 434,
+      "parse_rate": 1.0,
+      "parsed": 434,
+      "subject": "college_mathematics"
+    },
+    {
+      "accuracy": 0.26646706586826346,
+      "correct": 356,
+      "dataset": "mmlu_prox",
+      "language": "bn",
+      "n": 1336,
+      "parse_rate": 1.0,
+      "parsed": 1336,
+      "subject": "college_physics"
+    },
+    {
+      "accuracy": 0.3370044052863436,
+      "correct": 153,
+      "dataset": "mmlu_prox",
+      "language": "bn",
+      "n": 454,
+      "parse_rate": 1.0,
+      "parsed": 454,
+      "subject": "electrical_engineering"
+    },
+    {
+      "accuracy": 0.52,
+      "correct": 208,
+      "dataset": "mmlu_prox",
+      "language": "bn",
+      "n": 400,
+      "parse_rate": 1.0,
+      "parsed": 400,
+      "subject": "high_school_microeconomics"
+    },
+    {
+      "accuracy": 0.6655737704918033,
+      "correct": 203,
+      "dataset": "mmlu_prox",
+      "language": "bn",
+      "n": 305,
+      "parse_rate": 1.0,
+      "parsed": 305,
+      "subject": "high_school_psychology"
+    },
+    {
+      "accuracy": 0.2112676056338028,
+      "correct": 15,
+      "dataset": "mmlu_prox",
+      "language": "bn",
+      "n": 71,
+      "parse_rate": 1.0,
+      "parsed": 71,
+      "subject": "high_school_statistics"
+    },
+    {
+      "accuracy": 0.2125,
+      "correct": 119,
+      "dataset": "mmlu_prox",
+      "language": "bn",
+      "n": 560,
+      "parse_rate": 1.0,
+      "parsed": 560,
+      "subject": "management"
+    },
+    {
+      "accuracy": 0.3945578231292517,
+      "correct": 58,
+      "dataset": "mmlu_prox",
+      "language": "bn",
+      "n": 147,
+      "parse_rate": 1.0,
+      "parsed": 147,
+      "subject": "medical_genetics"
+    },
+    {
+      "accuracy": 0.24324324324324326,
+      "correct": 18,
+      "dataset": "mmlu_prox",
+      "language": "bn",
+      "n": 74,
+      "parse_rate": 1.0,
+      "parsed": 74,
+      "subject": "professional_accounting"
+    },
+    {
+      "accuracy": 0.6695156695156695,
+      "correct": 235,
+      "dataset": "mmlu_prox",
+      "language": "hi",
+      "n": 351,
+      "parse_rate": 1.0,
+      "parsed": 351,
+      "subject": "college_biology"
+    },
+    {
+      "accuracy": 0.27253668763102723,
+      "correct": 260,
+      "dataset": "mmlu_prox",
+      "language": "hi",
+      "n": 954,
+      "parse_rate": 1.0,
+      "parsed": 954,
+      "subject": "college_chemistry"
+    },
+    {
+      "accuracy": 0.375,
+      "correct": 51,
+      "dataset": "mmlu_prox",
+      "language": "hi",
+      "n": 136,
+      "parse_rate": 1.0,
+      "parsed": 136,
+      "subject": "college_computer_science"
+    },
+    {
+      "accuracy": 0.271889400921659,
+      "correct": 118,
+      "dataset": "mmlu_prox",
+      "language": "hi",
+      "n": 434,
+      "parse_rate": 1.0,
+      "parsed": 434,
+      "subject": "college_mathematics"
+    },
+    {
+      "accuracy": 0.28218562874251496,
+      "correct": 377,
+      "dataset": "mmlu_prox",
+      "language": "hi",
+      "n": 1336,
+      "parse_rate": 1.0,
+      "parsed": 1336,
+      "subject": "college_physics"
+    },
+    {
+      "accuracy": 0.3303964757709251,
+      "correct": 150,
+      "dataset": "mmlu_prox",
+      "language": "hi",
+      "n": 454,
+      "parse_rate": 1.0,
+      "parsed": 454,
+      "subject": "electrical_engineering"
+    },
+    {
+      "accuracy": 0.5375,
+      "correct": 215,
+      "dataset": "mmlu_prox",
+      "language": "hi",
+      "n": 400,
+      "parse_rate": 1.0,
+      "parsed": 400,
+      "subject": "high_school_microeconomics"
+    },
+    {
+      "accuracy": 0.6491803278688525,
+      "correct": 198,
+      "dataset": "mmlu_prox",
+      "language": "hi",
+      "n": 305,
+      "parse_rate": 1.0,
+      "parsed": 305,
+      "subject": "high_school_psychology"
+    },
+    {
+      "accuracy": 0.16901408450704225,
+      "correct": 12,
+      "dataset": "mmlu_prox",
+      "language": "hi",
+      "n": 71,
+      "parse_rate": 1.0,
+      "parsed": 71,
+      "subject": "high_school_statistics"
+    },
+    {
+      "accuracy": 0.225,
+      "correct": 126,
+      "dataset": "mmlu_prox",
+      "language": "hi",
+      "n": 560,
+      "parse_rate": 1.0,
+      "parsed": 560,
+      "subject": "management"
+    },
+    {
+      "accuracy": 0.3741496598639456,
+      "correct": 55,
+      "dataset": "mmlu_prox",
+      "language": "hi",
+      "n": 147,
+      "parse_rate": 1.0,
+      "parsed": 147,
+      "subject": "medical_genetics"
+    },
+    {
+      "accuracy": 0.28378378378378377,
+      "correct": 21,
+      "dataset": "mmlu_prox",
+      "language": "hi",
+      "n": 74,
+      "parse_rate": 1.0,
+      "parsed": 74,
+      "subject": "professional_accounting"
+    },
+    {
+      "accuracy": 0.6638176638176638,
+      "correct": 233,
+      "dataset": "mmlu_prox",
+      "language": "ne",
+      "n": 351,
+      "parse_rate": 1.0,
+      "parsed": 351,
+      "subject": "college_biology"
+    },
+    {
+      "accuracy": 0.25366876310272535,
+      "correct": 242,
+      "dataset": "mmlu_prox",
+      "language": "ne",
+      "n": 954,
+      "parse_rate": 1.0,
+      "parsed": 954,
+      "subject": "college_chemistry"
+    },
+    {
+      "accuracy": 0.38235294117647056,
+      "correct": 52,
+      "dataset": "mmlu_prox",
+      "language": "ne",
+      "n": 136,
+      "parse_rate": 1.0,
+      "parsed": 136,
+      "subject": "college_computer_science"
+    },
+    {
+      "accuracy": 0.26497695852534564,
+      "correct": 115,
+      "dataset": "mmlu_prox",
+      "language": "ne",
+      "n": 434,
+      "parse_rate": 1.0,
+      "parsed": 434,
+      "subject": "college_mathematics"
+    },
+    {
+      "accuracy": 0.28218562874251496,
+      "correct": 377,
+      "dataset": "mmlu_prox",
+      "language": "ne",
+      "n": 1336,
+      "parse_rate": 1.0,
+      "parsed": 1336,
+      "subject": "college_physics"
+    },
+    {
+      "accuracy": 0.32158590308370044,
+      "correct": 146,
+      "dataset": "mmlu_prox",
+      "language": "ne",
+      "n": 454,
+      "parse_rate": 1.0,
+      "parsed": 454,
+      "subject": "electrical_engineering"
+    },
+    {
+      "accuracy": 0.51,
+      "correct": 204,
+      "dataset": "mmlu_prox",
+      "language": "ne",
+      "n": 400,
+      "parse_rate": 1.0,
+      "parsed": 400,
+      "subject": "high_school_microeconomics"
+    },
+    {
+      "accuracy": 0.5868852459016394,
+      "correct": 179,
+      "dataset": "mmlu_prox",
+      "language": "ne",
+      "n": 305,
+      "parse_rate": 1.0,
+      "parsed": 305,
+      "subject": "high_school_psychology"
+    },
+    {
+      "accuracy": 0.18309859154929578,
+      "correct": 13,
+      "dataset": "mmlu_prox",
+      "language": "ne",
+      "n": 71,
+      "parse_rate": 1.0,
+      "parsed": 71,
+      "subject": "high_school_statistics"
+    },
+    {
+      "accuracy": 0.22857142857142856,
+      "correct": 128,
+      "dataset": "mmlu_prox",
+      "language": "ne",
+      "n": 560,
+      "parse_rate": 1.0,
+      "parsed": 560,
+      "subject": "management"
+    },
+    {
+      "accuracy": 0.3945578231292517,
+      "correct": 58,
+      "dataset": "mmlu_prox",
+      "language": "ne",
+      "n": 147,
+      "parse_rate": 1.0,
+      "parsed": 147,
+      "subject": "medical_genetics"
+    },
+    {
+      "accuracy": 0.25675675675675674,
+      "correct": 19,
+      "dataset": "mmlu_prox",
+      "language": "ne",
+      "n": 74,
+      "parse_rate": 1.0,
+      "parsed": 74,
+      "subject": "professional_accounting"
+    },
+    {
+      "accuracy": 0.1396011396011396,
+      "correct": 49,
+      "dataset": "mmlu_prox",
+      "language": "sw",
+      "n": 351,
+      "parse_rate": 1.0,
+      "parsed": 351,
+      "subject": "college_biology"
+    },
+    {
+      "accuracy": 0.09748427672955975,
+      "correct": 93,
+      "dataset": "mmlu_prox",
+      "language": "sw",
+      "n": 954,
+      "parse_rate": 1.0,
+      "parsed": 954,
+      "subject": "college_chemistry"
+    },
+    {
+      "accuracy": 0.11029411764705882,
+      "correct": 15,
+      "dataset": "mmlu_prox",
+      "language": "sw",
+      "n": 136,
+      "parse_rate": 1.0,
+      "parsed": 136,
+      "subject": "college_computer_science"
+    },
+    {
+      "accuracy": 0.11290322580645161,
+      "correct": 49,
+      "dataset": "mmlu_prox",
+      "language": "sw",
+      "n": 434,
+      "parse_rate": 1.0,
+      "parsed": 434,
+      "subject": "college_mathematics"
+    },
+    {
+      "accuracy": 0.09955089820359281,
+      "correct": 133,
+      "dataset": "mmlu_prox",
+      "language": "sw",
+      "n": 1336,
+      "parse_rate": 1.0,
+      "parsed": 1336,
+      "subject": "college_physics"
+    },
+    {
+      "accuracy": 0.0947136563876652,
+      "correct": 43,
+      "dataset": "mmlu_prox",
+      "language": "sw",
+      "n": 454,
+      "parse_rate": 1.0,
+      "parsed": 454,
+      "subject": "electrical_engineering"
+    },
+    {
+      "accuracy": 0.145,
+      "correct": 58,
+      "dataset": "mmlu_prox",
+      "language": "sw",
+      "n": 400,
+      "parse_rate": 1.0,
+      "parsed": 400,
+      "subject": "high_school_microeconomics"
+    },
+    {
+      "accuracy": 0.14426229508196722,
+      "correct": 44,
+      "dataset": "mmlu_prox",
+      "language": "sw",
+      "n": 305,
+      "parse_rate": 1.0,
+      "parsed": 305,
+      "subject": "high_school_psychology"
+    },
+    {
+      "accuracy": 0.09859154929577464,
+      "correct": 7,
+      "dataset": "mmlu_prox",
+      "language": "sw",
+      "n": 71,
+      "parse_rate": 1.0,
+      "parsed": 71,
+      "subject": "high_school_statistics"
+    },
+    {
+      "accuracy": 0.11071428571428571,
+      "correct": 62,
+      "dataset": "mmlu_prox",
+      "language": "sw",
+      "n": 560,
+      "parse_rate": 1.0,
+      "parsed": 560,
+      "subject": "management"
+    },
+    {
+      "accuracy": 0.1292517006802721,
+      "correct": 19,
+      "dataset": "mmlu_prox",
+      "language": "sw",
+      "n": 147,
+      "parse_rate": 1.0,
+      "parsed": 147,
+      "subject": "medical_genetics"
+    },
+    {
+      "accuracy": 0.06756756756756757,
+      "correct": 5,
+      "dataset": "mmlu_prox",
+      "language": "sw",
+      "n": 74,
+      "parse_rate": 1.0,
+      "parsed": 74,
+      "subject": "professional_accounting"
+    },
+    {
+      "accuracy": 0.6011396011396012,
+      "correct": 211,
+      "dataset": "mmlu_prox",
+      "language": "te",
+      "n": 351,
+      "parse_rate": 1.0,
+      "parsed": 351,
+      "subject": "college_biology"
+    },
+    {
+      "accuracy": 0.27044025157232704,
+      "correct": 258,
+      "dataset": "mmlu_prox",
+      "language": "te",
+      "n": 954,
+      "parse_rate": 1.0,
+      "parsed": 954,
+      "subject": "college_chemistry"
+    },
+    {
+      "accuracy": 0.34558823529411764,
+      "correct": 47,
+      "dataset": "mmlu_prox",
+      "language": "te",
+      "n": 136,
+      "parse_rate": 1.0,
+      "parsed": 136,
+      "subject": "college_computer_science"
+    },
+    {
+      "accuracy": 0.22350230414746544,
+      "correct": 97,
+      "dataset": "mmlu_prox",
+      "language": "te",
+      "n": 434,
+      "parse_rate": 1.0,
+      "parsed": 434,
+      "subject": "college_mathematics"
+    },
+    {
+      "accuracy": 0.2836826347305389,
+      "correct": 379,
+      "dataset": "mmlu_prox",
+      "language": "te",
+      "n": 1336,
+      "parse_rate": 1.0,
+      "parsed": 1336,
+      "subject": "college_physics"
+    },
+    {
+      "accuracy": 0.30616740088105726,
+      "correct": 139,
+      "dataset": "mmlu_prox",
+      "language": "te",
+      "n": 454,
+      "parse_rate": 1.0,
+      "parsed": 454,
+      "subject": "electrical_engineering"
+    },
+    {
+      "accuracy": 0.475,
+      "correct": 190,
+      "dataset": "mmlu_prox",
+      "language": "te",
+      "n": 400,
+      "parse_rate": 1.0,
+      "parsed": 400,
+      "subject": "high_school_microeconomics"
+    },
+    {
+      "accuracy": 0.5934426229508196,
+      "correct": 181,
+      "dataset": "mmlu_prox",
+      "language": "te",
+      "n": 305,
+      "parse_rate": 1.0,
+      "parsed": 305,
+      "subject": "high_school_psychology"
+    },
+    {
+      "accuracy": 0.2112676056338028,
+      "correct": 15,
+      "dataset": "mmlu_prox",
+      "language": "te",
+      "n": 71,
+      "parse_rate": 1.0,
+      "parsed": 71,
+      "subject": "high_school_statistics"
+    },
+    {
+      "accuracy": 0.23214285714285715,
+      "correct": 130,
+      "dataset": "mmlu_prox",
+      "language": "te",
+      "n": 560,
+      "parse_rate": 1.0,
+      "parsed": 560,
+      "subject": "management"
+    },
+    {
+      "accuracy": 0.41496598639455784,
+      "correct": 61,
+      "dataset": "mmlu_prox",
+      "language": "te",
+      "n": 147,
+      "parse_rate": 1.0,
+      "parsed": 147,
+      "subject": "medical_genetics"
+    },
+    {
+      "accuracy": 0.28378378378378377,
+      "correct": 21,
+      "dataset": "mmlu_prox",
+      "language": "te",
+      "n": 74,
+      "parse_rate": 1.0,
+      "parsed": 74,
+      "subject": "professional_accounting"
+    }
+  ],
+  "comparison_old_english_prompt_full": {
+    "accuracy": 0.3928056049356896,
+    "by_language": {
+      "bn": {
+        "harm": 639,
+        "help": 763,
+        "same": 8161
+      },
+      "hi": {
+        "harm": 644,
+        "help": 707,
+        "same": 8212
+      },
+      "ne": {
+        "harm": 659,
+        "help": 767,
+        "same": 8137
+      },
+      "sw": {
+        "harm": 2166,
+        "help": 896,
+        "same": 6501
+      },
+      "te": {
+        "harm": 660,
+        "help": 762,
+        "same": 8141
+      }
+    },
+    "correct": 18782,
+    "harm": 4768,
+    "help": 3895,
+    "n": 47815,
+    "net": -873,
+    "overlap_n": 47815,
+    "parse_rate": 1.0,
+    "run_dir": "/tmp/ca_low_resource_eval/runs/full_qwen3_8b_zero_shot",
+    "same": 39152
+  },
+  "correct": 17909,
+  "datasets": [
+    "global_mmlu",
+    "mmlu_prox"
+  ],
+  "languages": [
+    "bn",
+    "hi",
+    "sw",
+    "te",
+    "ne"
+  ],
+  "mode": "zero_shot",
+  "model_dir": "/tmp/qwen_models/Qwen3-8B",
+  "model_name": "Qwen3-8B",
+  "n": 47815,
+  "parse_rate": 1.0,
+  "parsed": 47815,
+  "prompt_style": "localized",
+  "source_run_dirs": [
+    "runs/smoke_001/full_qwen3_8b_localized_zero_shot_gpu0_bn_hi_sw",
+    "runs/smoke_001/full_qwen3_8b_localized_zero_shot_gpu1_te_ne"
+  ]
+}
