@@ -112,4 +112,4 @@ A 100-example smoke run was validated on 2026-08-07. The lightweight committed s
 reports/rag_baselines_qwen3_8b_smoke.md
 ```
 
-The raw `runs/rag_baselines_qwen3_8b/smoke/` outputs remain local and are ignored by git.
+The raw `runs/rag_baselines_qwen3_8b/smoke_v2/` outputs remain local and are ignored by git.

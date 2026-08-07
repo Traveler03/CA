@@ -2,7 +2,7 @@
 
 Run date: 2026-08-07
 
-This report records the lightweight smoke run for the three multilingual RAG baselines implemented in `scripts/run_rag_baselines_qwen3.py`.
+This report records the lightweight `smoke_v2` run for the three multilingual RAG baselines implemented in `scripts/run_rag_baselines_qwen3.py`.
 
 ## Scope
 
@@ -15,7 +15,7 @@ This report records the lightweight smoke run for the three multilingual RAG bas
 - Top-k: 5
 - Evidence budget: 1200 tokens
 - Per-doc evidence cap: 240 tokens
-- Output directory, not committed: `runs/rag_baselines_qwen3_8b/smoke/`
+- Output directory, not committed: `runs/rag_baselines_qwen3_8b/smoke_v2/`
 
 Raw predictions, retrieval cache, LLM cache, logs, indexes, and generated run files are intentionally not committed.
 
@@ -31,9 +31,9 @@ Raw predictions, retrieval cache, LLM cache, logs, indexes, and generated run fi
 
 | method | avg_llm_calls | avg_prompt_tokens | avg_completion_tokens | avg_total_tokens | avg_evidence_tokens | accuracy |
 |---|---:|---:|---:|---:|---:|---:|
-| TRAG | 2.0 | 2473.58 | 217.68 | 2691.26 | 1037.96 | 33.0% |
-| DKM-RAG | 3.0 | 9771.32 | 899.50 | 10670.82 | 1163.47 | 28.0% |
-| QTT-RAG | 3.0 | 7568.06 | 355.46 | 7923.52 | 1177.40 | 29.0% |
+| TRAG | 2.00 | 2468.03 | 217.42 | 2685.45 | 1032.43 | 33.0% |
+| DKM-RAG | 3.00 | 9771.32 | 898.87 | 10670.19 | 1163.47 | 28.0% |
+| QTT-RAG | 2.69 | 7559.89 | 353.81 | 7913.70 | 1177.38 | 29.0% |
 
 ## Validation checks
 
@@ -44,7 +44,7 @@ Raw predictions, retrieval cache, LLM cache, logs, indexes, and generated run fi
   - `dkm_rag`: 100
   - `qtt_rag`: 100
 - Parse rate:
-  - `trag`: 96%
+  - `trag`: 97%
   - `dkm_rag`: 100%
   - `qtt_rag`: 100%
 - Evidence token budget:
@@ -55,3 +55,5 @@ Raw predictions, retrieval cache, LLM cache, logs, indexes, and generated run fi
 ## Notes
 
 This smoke run validates that the three baselines execute end-to-end with the required output structure and budget logging. It is not a statistically stable benchmark result; use `pilot` or `full` presets for larger runs.
+
+`smoke_v2` also validates that QTT-RAG skips no-op translation calls when all retrieved passages are already in the query language; those rows still include an explicit zero-token translation stage in `token_logs`.

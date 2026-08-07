@@ -619,6 +619,22 @@ def load_existing_predictions(path: Path) -> dict[str, dict[str, Any]]:
     return items
 
 
+def reset_method_outputs(output_dir: Path, method: str) -> None:
+    """Clear resumable stage files for one method before a fresh non-resume run."""
+
+    candidates = [
+        output_dir / "retrieval" / f"{method}.jsonl",
+        output_dir / "translations" / f"{method}.jsonl",
+        output_dir / "dkm_refined" / f"{method}.jsonl",
+        output_dir / "qtt_tags" / f"{method}.jsonl",
+        output_dir / "predictions" / f"{method}.jsonl",
+        output_dir / "token_logs" / f"{method}.jsonl",
+    ]
+    for path in candidates:
+        if path.exists():
+            path.unlink()
+
+
 def stage_token_summary(results: list[LLMResult]) -> dict[str, int]:
     return {
         "prompt_tokens": sum(item.prompt_tokens for item in results),
@@ -688,6 +704,8 @@ def run_trag(
     english_retriever: EnglishWikiHttpRetriever,
 ) -> None:
     method = "trag"
+    if not config.get("resume", True):
+        reset_method_outputs(output_dir, method)
     pred_path = output_dir / "predictions" / f"{method}.jsonl"
     existing = load_existing_predictions(pred_path) if config.get("resume", True) else {}
     rows = [row for row in rows if row["eval_key"] not in existing]
@@ -756,6 +774,8 @@ def run_dkm_rag(
     multilingual_retriever: MultilingualFaissRetriever,
 ) -> None:
     method = "dkm_rag"
+    if not config.get("resume", True):
+        reset_method_outputs(output_dir, method)
     pred_path = output_dir / "predictions" / f"{method}.jsonl"
     existing = load_existing_predictions(pred_path) if config.get("resume", True) else {}
     rows = [row for row in rows if row["eval_key"] not in existing]
@@ -848,6 +868,8 @@ def run_qtt_rag(
     multilingual_retriever: MultilingualFaissRetriever,
 ) -> None:
     method = "qtt_rag"
+    if not config.get("resume", True):
+        reset_method_outputs(output_dir, method)
     pred_path = output_dir / "predictions" / f"{method}.jsonl"
     existing = load_existing_predictions(pred_path) if config.get("resume", True) else {}
     rows = [row for row in rows if row["eval_key"] not in existing]
@@ -865,31 +887,39 @@ def run_qtt_rag(
     append_jsonl(output_dir / "retrieval" / f"{method}.jsonl", retrieval_records)
 
     translation_prompts: list[list[dict[str, str]]] = []
-    qtt_original_texts: list[list[str]] = []
+    translation_prompt_rows: list[int] = []
+    non_query_positions_by_row: list[list[int]] = []
     for row in rows:
         docs = docs_by_key[row["eval_key"]]
-        original = [doc.get("text") or "" for doc in docs]
-        qtt_original_texts.append(original)
-        docs_to_translate = [doc for doc in docs if doc.get("language") != row["_language"]]
+        non_query_positions = [idx for idx, doc in enumerate(docs) if doc.get("language") != row["_language"]]
+        non_query_positions_by_row.append(non_query_positions)
+        docs_to_translate = [docs[idx] for idx in non_query_positions]
         if docs_to_translate:
+            translation_prompt_rows.append(len(non_query_positions_by_row) - 1)
             translation_prompts.append(passage_translation_messages(docs_to_translate, row["_language"]))
-        else:
-            translation_prompts.append([system("No translation needed."), user('Return {"translations":[]}')])
-    translation_results = llm.generate_many(stage="qtt_translate_non_query_passages", messages_list=translation_prompts, max_tokens=rag_cfg["translation_max_tokens"])
+    generated_translation_results = (
+        llm.generate_many(stage="qtt_translate_non_query_passages", messages_list=translation_prompts, max_tokens=rag_cfg["translation_max_tokens"])
+        if translation_prompts
+        else []
+    )
+    translation_results: list[LLMResult | None] = [None for _ in rows]
+    for row_idx, result in zip(translation_prompt_rows, generated_translation_results):
+        translation_results[row_idx] = result
 
     translated_lists: list[list[str]] = []
     for row, result in zip(rows, translation_results):
         docs = docs_by_key[row["eval_key"]]
         translated = [doc.get("text") or "" for doc in docs]
-        non_query_positions = [idx for idx, doc in enumerate(docs) if doc.get("language") != row["_language"]]
-        parsed = parse_json_object(result.content) or {}
-        non_query_translations = normalize_text_list(
-            parsed.get("translations"),
-            len(non_query_positions),
-            [translated[idx] for idx in non_query_positions],
-        )
-        for idx, translated_text in zip(non_query_positions, non_query_translations):
-            translated[idx] = translated_text
+        non_query_positions = non_query_positions_by_row[len(translated_lists)]
+        if result is not None:
+            parsed = parse_json_object(result.content) or {}
+            non_query_translations = normalize_text_list(
+                parsed.get("translations"),
+                len(non_query_positions),
+                [translated[idx] for idx in non_query_positions],
+            )
+            for idx, translated_text in zip(non_query_positions, non_query_translations):
+                translated[idx] = translated_text
         translated_lists.append(translated)
         for doc, translated_text in zip(docs, translated):
             doc["translated_text"] = translated_text
@@ -936,7 +966,7 @@ def run_qtt_rag(
             raw_answer=answer_result.content,
             answer_result=answer_result,
             stage_results={
-                "translate_non_query_passages": [translation_results[idx]],
+                "translate_non_query_passages": [translation_results[idx]] if translation_results[idx] is not None else [],
                 "quality_score": [score_results[idx]],
                 "answer": [answer_result],
             },
