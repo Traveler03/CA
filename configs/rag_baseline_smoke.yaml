@@ -1,0 +1,24 @@
+output_dir: runs/smoke_001/rag_baselines_smoke
+methods: [trag, dkm_rag, qtt_rag]
+global_mmlu_dir: data/processed/global_mmlu
+languages: [bn, hi, sw, te, ne]
+limit_per_language: 1
+max_rows: 5
+seed: 42
+candidate_top_k: 50
+final_top_k: 5
+top_k: 50
+generation_top_k: 5
+retrieval_mode: faithful
+retrieval_endpoint: http://127.0.0.1:8897/search
+english_service_url: http://127.0.0.1:8897
+multilingual_root: /tmp/ca_multilingual_wikipedia_qwen3_4b/full_20231101
+embedding_model_dir: data/external/models/Qwen3-Embedding-4B
+embedding_device: cuda
+ef_search: 128
+reranker: lexical
+live_model: false
+max_concurrent_model_requests: 4
+max_model_calls: 800
+resume: true
+qtt_keep_top_if_empty: false

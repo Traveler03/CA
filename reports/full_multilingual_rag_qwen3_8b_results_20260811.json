@@ -1,0 +1,90 @@
+{
+  "run_date": "2026-08-11",
+  "model": "Qwen3-8B via local vLLM",
+  "embedding_model": "Qwen3-Embedding-4B",
+  "datasets": [
+    "Global-MMLU",
+    "MMLU-ProX non-Global-MMLU portion"
+  ],
+  "languages": [
+    "bn",
+    "hi",
+    "ne",
+    "sw",
+    "te"
+  ],
+  "n": 47815,
+  "results": [
+    {
+      "method": "zero-shot",
+      "correct": 17909,
+      "accuracy": 0.37454773606608804,
+      "parse_rate": 1.0,
+      "accuracy_pct": 37.45,
+      "gain_vs_zero_shot_points": 0.0,
+      "by_language": {
+        "bn": {"n": 9563, "correct": 4015, "accuracy": 0.4198473282442748},
+        "hi": {"n": 9563, "correct": 4175, "accuracy": 0.4365784795566245},
+        "ne": {"n": 9563, "correct": 3948, "accuracy": 0.41284115863222837},
+        "sw": {"n": 9563, "correct": 1941, "accuracy": 0.20296977935794208},
+        "te": {"n": 9563, "correct": 3830, "accuracy": 0.4005019345393705}
+      }
+    },
+    {
+      "method": "D-RAG adaptive",
+      "correct": 20592,
+      "accuracy": 0.4306598347798808,
+      "parse_rate": 1.0,
+      "accuracy_pct": 43.07,
+      "gain_vs_zero_shot_points": 5.61,
+      "by_language": {
+        "bn": {"n": 9563, "correct": 4287, "accuracy": 0.4482902854752693},
+        "hi": {"n": 9563, "correct": 4474, "accuracy": 0.46784481857157795},
+        "ne": {"n": 9563, "correct": 4301, "accuracy": 0.44975426121509987},
+        "sw": {"n": 9563, "correct": 3439, "accuracy": 0.359615183519816},
+        "te": {"n": 9563, "correct": 4091, "accuracy": 0.4277946251176409}
+      }
+    },
+    {
+      "method": "CORAL raw-Wikipag no-fallback",
+      "correct": 23366,
+      "accuracy": 0.48867510195545333,
+      "parse_rate": 0.9999790860608596,
+      "accuracy_pct": 48.87,
+      "gain_vs_zero_shot_points": 11.41,
+      "by_language": {
+        "bn": {"n": 9563, "correct": 4892, "accuracy": 0.5115549513750915},
+        "hi": {"n": 9563, "correct": 5038, "accuracy": 0.5268221269476105},
+        "ne": {"n": 9563, "correct": 4868, "accuracy": 0.509045278678239},
+        "sw": {"n": 9563, "correct": 3747, "accuracy": 0.3918226497960891},
+        "te": {"n": 9563, "correct": 4821, "accuracy": 0.5041305029802363}
+      },
+      "notes": [
+        "Retrieval source is restricted to raw Wikipag passages.",
+        "The offline usage-card bank is not used.",
+        "D-RAG fallback is disabled."
+      ]
+    },
+    {
+      "method": "tRAG / tCRAG",
+      "correct": 24071,
+      "accuracy": 0.5034194290494615,
+      "valid_rate": 0.9998117745477361,
+      "accuracy_pct": 50.34,
+      "gain_vs_zero_shot_points": 12.89,
+      "by_language": {
+        "bn": {"n": 9563, "correct": 5023, "accuracy": 0.5252535815120778},
+        "hi": {"n": 9563, "correct": 5126, "accuracy": 0.5360242601694029},
+        "ne": {"n": 9563, "correct": 5050, "accuracy": 0.5280769632960368},
+        "sw": {"n": 9563, "correct": 3909, "accuracy": 0.40876294049984313},
+        "te": {"n": 9563, "correct": 4963, "accuracy": 0.5189793997699467}
+      }
+    }
+  ],
+  "ranking": [
+    "tRAG / tCRAG",
+    "CORAL raw-Wikipag no-fallback",
+    "D-RAG adaptive",
+    "zero-shot"
+  ]
+}

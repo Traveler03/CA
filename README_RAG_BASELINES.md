@@ -1,10 +1,12 @@
 # Qwen3 multilingual RAG baselines
 
-This repository includes reproducible implementations for three multilingual RAG baselines:
+This repository includes reproducible implementations for multilingual RAG baselines:
 
 - `TRAG`
 - `DKM-RAG`
 - `QTT-RAG`
+- `D-RAG-ICL adaptive`
+- `CORAL-Wikipag`
 
 The baselines use Qwen3-Embedding-4B FAISS indexes for retrieval and a Qwen3-8B-Instruct-compatible local model for translation, refinement, quality scoring, and answer generation.
 
@@ -113,3 +115,21 @@ reports/rag_baselines_qwen3_8b_smoke.md
 ```
 
 The raw `runs/rag_baselines_qwen3_8b/smoke_v2/` outputs remain local and are ignored by git.
+
+## Full result
+
+A 47,815-example full run was recorded on 2026-08-11:
+
+```text
+reports/full_multilingual_rag_qwen3_8b_results_20260811.md
+reports/full_multilingual_rag_qwen3_8b_results_20260811.json
+```
+
+Overall ranking in that run:
+
+```text
+tRAG / tCRAG: 50.34%
+CORAL raw-Wikipag no-fallback: 48.87%
+D-RAG adaptive: 43.07%
+zero-shot: 37.45%
+```
