@@ -1,0 +1,16 @@
+{
+  "dataset": "wikimedia/wikipedia",
+  "revision": "main",
+  "languages": ["bn", "hi", "ne", "sw", "te"],
+  "snapshot_prefix": "20231101.",
+  "output_root": "data/external/wikipedia-multilingual-20231101-qwen3-embedding-4b/full_20231101",
+  "model_dir": "data/external/models/Qwen3-Embedding-4B",
+  "embedding_dimension": 1024,
+  "passage_max_chars": 1200,
+  "passage_overlap_chars": 200,
+  "passages_per_file": 100000,
+  "embedding_batch_size": 512,
+  "hnsw_m": 32,
+  "hnsw_ef_construction": 200,
+  "hnsw_ef_search": 128
+}

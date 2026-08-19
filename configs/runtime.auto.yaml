@@ -1,0 +1,9 @@
+api:
+  chat_concurrency: 102
+  embedding_concurrency: 38
+  embedding_batch_size: 64
+  timeout_seconds: 60
+  max_retries: 3
+models:
+  chat: qwen3.5-9b
+  embedding: compass-embedding-v4

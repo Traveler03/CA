@@ -3,33 +3,24 @@ from __future__ import annotations
 import argparse
 import json
 import re
-from collections import Counter
 from pathlib import Path
 from typing import Any
 
 
 REQUIRED_FILES = [
-    "subject_profile.jsonl",
-    "concept_queries.jsonl",
-    "concept_passages.jsonl",
-    "candidate_concepts.jsonl",
     "concept_registry.jsonl",
-    "concept_evidence.jsonl",
-    "evidence_packs.jsonl",
-    "runtime_cards.raw.jsonl",
-    "runtime_card_claims.jsonl",
-    "runtime_card_quality.jsonl",
-    "runtime_cards.jsonl",
-    "runtime_card_index.jsonl",
-    "runtime_card_index.npy",
-    "runtime_card_index_meta.json",
+    "concept_relations.jsonl",
     "evidence_sections.parquet",
+    "usage_cards.jsonl",
+    "usage_card_claims.jsonl",
+    "usage_index.jsonl",
     "build_events.jsonl",
     "rejected_items.jsonl",
     "bank_manifest.json",
     "summary.json",
 ]
 ALLOW_EMPTY_FILES = {
+    "concept_relations.jsonl",
     "rejected_items.jsonl",
 }
 
@@ -38,7 +29,7 @@ FORBIDDEN_MODEL_PATTERNS = [
     re.compile(r"qwen" + r"-?3\.5", re.IGNORECASE),
 ]
 
-ASSESSMENT_ARTIFACT_KEYS = {"sample_id", "prediction", "reference_response", "labeled_alternatives"}
+BENCHMARK_KEYS = {"question", "options", "answer", "gold", "sample_id", "prediction"}
 
 
 def read_json(path: Path) -> dict[str, Any]:
@@ -77,11 +68,11 @@ def scan_forbidden_model_strings(root: Path, errors: list[str]) -> None:
                 break
 
 
-def check_no_assessment_artifact_keys(rows: list[dict[str, Any]], file_name: str, errors: list[str]) -> None:
+def check_no_benchmark_keys(rows: list[dict[str, Any]], file_name: str, errors: list[str]) -> None:
     for idx, row in enumerate(rows[:1000], start=1):
-        bad = sorted(ASSESSMENT_ARTIFACT_KEYS & set(row))
+        bad = sorted(BENCHMARK_KEYS & set(row))
         if bad:
-            errors.append(f"assessment-artifact keys {bad} in {file_name}:{idx}")
+            errors.append(f"benchmark-like keys {bad} in {file_name}:{idx}")
             return
 
 
@@ -96,12 +87,18 @@ def audit(root: Path, *, expected_model: str) -> dict[str, Any]:
 
     summary = read_json(root / "summary.json") if (root / "summary.json").exists() else {}
     manifest = read_json(root / "bank_manifest.json") if (root / "bank_manifest.json").exists() else {}
+    subject_ids = [str(item) for item in (manifest.get("subject_ids") or [summary.get("subject")]) if item]
+    usage_index_dirs = [root / "usage_indexes" / subject for subject in subject_ids]
+    for usage_index_dir in usage_index_dirs:
+        for rel in ["usage_index.jsonl", "usage_index.faiss", "usage_index_ids.jsonl", "usage_index_meta.json"]:
+            assert_file(usage_index_dir / rel, errors)
+
     if manifest.get("construction_model") != expected_model:
         errors.append(f"construction_model mismatch: {manifest.get('construction_model')} != {expected_model}")
     if summary.get("model") != expected_model:
         errors.append(f"summary model mismatch: {summary.get('model')} != {expected_model}")
-    if manifest.get("source_corpus_only") is not True:
-        errors.append("bank_manifest source_corpus_only is not true")
+    if manifest.get("benchmark_content_accessed") is not False:
+        errors.append("bank_manifest benchmark_content_accessed is not false")
     if summary.get("active_card_count", 0) <= 0:
         errors.append("no active usage cards")
     if summary.get("active_concept_count", 0) <= 0:
@@ -110,72 +107,46 @@ def audit(root: Path, *, expected_model: str) -> dict[str, Any]:
     scan_forbidden_model_strings(root, errors)
 
     concept_rows = read_jsonl(root / "concept_registry.jsonl") if (root / "concept_registry.jsonl").exists() else []
-    runtime_rows = read_jsonl(root / "runtime_cards.jsonl") if (root / "runtime_cards.jsonl").exists() else []
-    claim_rows = read_jsonl(root / "runtime_card_claims.jsonl") if (root / "runtime_card_claims.jsonl").exists() else []
-    quality_rows = read_jsonl(root / "runtime_card_quality.jsonl") if (root / "runtime_card_quality.jsonl").exists() else []
-    index_rows = read_jsonl(root / "runtime_card_index.jsonl") if (root / "runtime_card_index.jsonl").exists() else []
+    usage_rows = read_jsonl(root / "usage_cards.jsonl") if (root / "usage_cards.jsonl").exists() else []
+    claim_rows = read_jsonl(root / "usage_card_claims.jsonl") if (root / "usage_card_claims.jsonl").exists() else []
+    index_rows = read_jsonl(root / "usage_index.jsonl") if (root / "usage_index.jsonl").exists() else []
     for file_name, rows in [
         ("concept_registry.jsonl", concept_rows),
-        ("runtime_cards.jsonl", runtime_rows),
-        ("runtime_card_claims.jsonl", claim_rows),
-        ("runtime_card_quality.jsonl", quality_rows),
-        ("runtime_card_index.jsonl", index_rows),
+        ("usage_cards.jsonl", usage_rows),
+        ("usage_card_claims.jsonl", claim_rows),
+        ("usage_index.jsonl", index_rows),
     ]:
-        check_no_assessment_artifact_keys(rows, file_name, errors)
+        check_no_benchmark_keys(rows, file_name, errors)
 
-    active_card_ids = {row.get("card_id") for row in runtime_rows if row.get("status") == "active"}
+    active_usage_ids = {row.get("usage_id") for row in usage_rows if row.get("status") == "active"}
     rejected_core = [
         row
         for row in claim_rows
-        if row.get("card_id") in active_card_ids
-        and row.get("slot") in {"definition", "trigger", "rule"}
+        if row.get("usage_id") in active_usage_ids
+        and row.get("field") in {"concept_boundary", "decision_procedure", "trigger_conditions", "verification_rules"}
         and row.get("decision") == "REJECT"
     ]
     if rejected_core:
         errors.append(f"active cards have rejected core claims: {len(rejected_core)}")
 
-    active_quality_ids = {row.get("card_id") for row in quality_rows if row.get("status") == "active"}
-    active_runtime_ids = {row.get("card_id") for row in runtime_rows if row.get("status") == "active"}
-    if active_quality_ids != active_runtime_ids:
-        errors.append(f"active quality ids do not match runtime cards: quality={len(active_quality_ids)} runtime={len(active_runtime_ids)}")
-    active_subject_concepts = [(row.get("subject"), row.get("concept_id")) for row in runtime_rows if row.get("status") == "active"]
-    duplicate_subject_concepts = {key: count for key, count in Counter(active_subject_concepts).items() if count > 1}
-    if duplicate_subject_concepts:
-        errors.append(f"duplicate active runtime cards for subject+concept: {duplicate_subject_concepts}")
-    low_quality = [
-        row
-        for row in quality_rows
-        if row.get("status") == "active" and float(row.get("quality_score") or 0.0) < float(manifest.get("min_card_quality_score") or 0.0)
-    ]
-    if low_quality:
-        errors.append(f"active cards below min quality score: {len(low_quality)}")
-    missing_pitfall = [row for row in quality_rows if row.get("status") == "active" and int(row.get("pitfall_count") or 0) <= 0]
-    if missing_pitfall:
-        errors.append(f"active cards missing supported pitfall: {len(missing_pitfall)}")
-    weak_slots = [
-        row
-        for row in quality_rows
-        if row.get("status") == "active"
-        and (
-            int(row.get("trigger_count") or 0) < 2
-            or int(row.get("rule_count") or 0) < 2
-            or int(row.get("procedural_rule_count") or 0) < 2
-        )
-    ]
-    if weak_slots:
-        errors.append(f"active cards below slot-count quality gate: {len(weak_slots)}")
+    for usage_index_dir in usage_index_dirs:
+        if not usage_index_dir.exists() or not (usage_index_dir / "usage_index.faiss").exists():
+            continue
+        try:
+            import faiss
 
-    try:
-        import numpy as np
-
-        matrix = np.load(root / "runtime_card_index.npy")
-        meta = read_json(root / "runtime_card_index_meta.json")
-        if int(matrix.shape[0]) != len(index_rows):
-            errors.append(f"runtime_card_index rows {matrix.shape[0]} != ids {len(index_rows)}")
-        if int(meta.get("count") or -1) != len(index_rows):
-            errors.append(f"runtime_card_index_meta count {meta.get('count')} != rows {len(index_rows)}")
-    except Exception as exc:
-        errors.append(f"failed to read runtime card index: {type(exc).__name__}: {exc}")
+            index = faiss.read_index(str(usage_index_dir / "usage_index.faiss"))
+            ids = read_jsonl(usage_index_dir / "usage_index_ids.jsonl")
+            meta = read_json(usage_index_dir / "usage_index_meta.json")
+            if int(index.ntotal) != len(ids):
+                errors.append(f"faiss ntotal {index.ntotal} != ids {len(ids)}")
+            subject_rows = [row for row in index_rows if row.get("subject") == usage_index_dir.name]
+            if int(index.ntotal) != len(subject_rows):
+                errors.append(f"{usage_index_dir.name}: faiss ntotal {index.ntotal} != usage_index rows {len(subject_rows)}")
+            if int(meta.get("count") or -1) != len(subject_rows):
+                errors.append(f"{usage_index_dir.name}: usage_index_meta count {meta.get('count')} != usage_index rows {len(subject_rows)}")
+        except Exception as exc:
+            errors.append(f"failed to read FAISS usage index {usage_index_dir}: {type(exc).__name__}: {exc}")
 
     if (root / "evidence_sections.parquet").exists():
         try:
@@ -195,10 +166,9 @@ def audit(root: Path, *, expected_model: str) -> dict[str, Any]:
             "model": summary.get("model"),
             "active_concept_count": summary.get("active_concept_count"),
             "active_card_count": summary.get("active_card_count"),
-            "runtime_card_count": summary.get("runtime_card_count"),
-            "runtime_card_index_count": summary.get("runtime_card_index_count"),
-            "avg_card_quality_score": summary.get("avg_card_quality_score"),
-            "source_corpus_only": manifest.get("source_corpus_only"),
+            "usage_index_count": summary.get("usage_index_count"),
+            "usage_faiss_index_count": summary.get("usage_faiss_index_count"),
+            "benchmark_content_accessed": manifest.get("benchmark_content_accessed"),
         },
     }
 

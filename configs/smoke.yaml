@@ -1,0 +1,6 @@
+split_seed: 20260726
+test_questions_per_language: 10
+target_languages: [bn, sw, te, ne, hi]
+temperature: 0.0
+enable_thinking: false
+methods: [zero_shot]

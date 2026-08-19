@@ -1,0 +1,49 @@
+# Shared runtime configuration for completing the missing five-language
+# Global-MMLU items.  Method, input shard and output directory are supplied on
+# the command line so every method remains independently resumable.
+global_mmlu_dir: data/processed/global_mmlu
+languages: [bn, hi, ne, sw, te]
+seed: 42
+allow_full_run: true
+resume: true
+
+retrieval_mode: faithful
+english_service_url: http://127.0.0.1:8897
+retrieval_endpoint: http://127.0.0.1:8897/search
+multilingual_root: data/external/wikipedia-multilingual-20231101-qwen3-embedding-4b/full_20231101
+multilingual_corpus_scope: all
+embedding_model_dir: data/external/models/Qwen3-Embedding-4B
+embedding_device: cuda
+ef_search: 128
+
+candidate_top_k: 10
+drag_icl_candidate_top_k: 10
+final_top_k: 5
+generation_top_k: 5
+reranker: lexical
+
+live_model: true
+local_vllm: true
+local_model_dir: /tmp/qwen_models/Qwen3-8B
+local_model_name: Qwen3-8B
+local_max_model_len: 16384
+local_gpu_memory_utilization: 0.70
+local_batch_size: 16
+local_batch_timeout_ms: 25
+batch_max_tokens: 8192
+answer_max_tokens: 32
+drag_icl_answer_max_tokens: 32
+max_concurrent_model_requests: 4
+max_model_calls: 500000
+
+coral_retrieval_source: wikipag
+coral_language_pool: [bn, hi, ne, sw, te]
+coral_max_corpora: 3
+coral_top_k_per_corpus: 5
+coral_final_top_k: 5
+coral_max_rounds: 3
+coral_batch_critic: true
+coral_translate_query: false
+coral_dual_query_retrieval: false
+coral_adaptive_direct_gate: false
+coral_drag_fallback_on_card_gate: false

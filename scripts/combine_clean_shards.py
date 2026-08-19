@@ -13,25 +13,19 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from scripts.run_subject_concept_smoke import embed_texts_with_wikipag_service
-from src.ca_mem.embedding import HashingTextEmbedder
 from src.smoke_test.io import read_jsonl, write_jsonl
+from scripts.export_concept_card_runtime_bank import write_runtime_bank
 
 
 JSONL_FILES = [
-    "subject_profile.jsonl",
-    "concept_queries.jsonl",
-    "concept_passages.jsonl",
-    "candidate_concepts.jsonl",
     "concept_registry.jsonl",
+    "concept_relations.jsonl",
     "concept_evidence.jsonl",
-    "merge_redirects.jsonl",
-    "evidence_packs.jsonl",
-    "runtime_cards.raw.jsonl",
-    "runtime_card_claims.jsonl",
-    "runtime_card_quality.jsonl",
-    "runtime_cards.jsonl",
-    "runtime_card_index.jsonl",
+    "concept_index.jsonl",
+    "usage_cards.jsonl",
+    "usage_card_claims.jsonl",
+    "usage_index.jsonl",
+    "usage_consolidation.jsonl",
     "build_events.jsonl",
     "rejected_items.jsonl",
 ]
@@ -41,11 +35,9 @@ COUNT_KEYS = [
     "concept_count",
     "active_concept_count",
     "active_card_count",
-    "runtime_card_count",
-    "runtime_card_claim_count",
-    "runtime_card_index_count",
-    "evidence_pack_count",
-    "avg_card_quality_score",
+    "usage_claim_count",
+    "usage_index_count",
+    "usage_faiss_index_count",
     "evidence_section_count",
     "rejected_item_count",
     "model_network_calls",
@@ -59,7 +51,9 @@ def load_json(path: Path) -> dict[str, Any]:
 def tag_row(row: dict[str, Any], *, shard: Path) -> dict[str, Any]:
     tagged = dict(row)
     tagged.setdefault("clean_shard_source_dir", str(shard))
-    tagged.setdefault("source_corpus_only", True)
+    tagged.setdefault("benchmark_content_accessed", False)
+    tagged.setdefault("uses_gold_answer", False)
+    tagged.setdefault("can_be_used_for_clean_global_mmlu_eval", True)
     return tagged
 
 
@@ -95,46 +89,17 @@ def copy_component_manifests(output_dir: Path, shard_dirs: list[Path]) -> list[d
     return manifests
 
 
-def rebuild_runtime_card_index(
-    output_dir: Path,
-    *,
-    backend: str,
-    service_url: str,
-    timeout_s: float,
-) -> dict[str, Any]:
-    index_path = output_dir / "runtime_card_index.jsonl"
-    rows = list(read_jsonl(index_path)) if index_path.exists() else []
-    texts = [str(row.get("index_text") or "") for row in rows]
-    if backend == "wikipag":
-        matrix, dimension = embed_texts_with_wikipag_service(texts, service_url=service_url, timeout_s=timeout_s)
-        embedding_backend = "wikipag_service"
-        embedding_model = "Qwen3-Embedding-4B"
-    else:
-        embedder = HashingTextEmbedder()
-        matrix = embedder.embed(texts)
-        dimension = int(matrix.shape[1]) if matrix.ndim == 2 else embedder.dim
-        embedding_backend = "hash"
-        embedding_model = embedder.model_name
-    import numpy as np
-
-    matrix_path = output_dir / "runtime_card_index.npy"
-    np.save(matrix_path, matrix)
-    meta = {
-        "index_type": "numpy_dense_matrix",
-        "metric": "cosine_on_normalized_embeddings",
-        "embedding_backend": embedding_backend,
-        "embedding_model": embedding_model,
-        "embedding_service_url": service_url if backend == "wikipag" else None,
-        "dimension": dimension,
-        "count": len(rows),
-        "matrix_path": str(matrix_path),
-        "ids_path": str(index_path),
-    }
-    (output_dir / "runtime_card_index_meta.json").write_text(
-        json.dumps(meta, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
-    return meta
+def copy_usage_indexes(output_dir: Path, shard_dirs: list[Path]) -> None:
+    dst_root = output_dir / "usage_indexes"
+    for shard in shard_dirs:
+        src_root = shard / "usage_indexes"
+        if not src_root.exists():
+            continue
+        for subject_dir in src_root.iterdir():
+            if not subject_dir.is_dir():
+                continue
+            dst = dst_root / subject_dir.name
+            shutil.copytree(subject_dir, dst, dirs_exist_ok=True)
 
 
 def combine_evidence_sections(output_dir: Path, shard_dirs: list[Path]) -> None:
@@ -164,6 +129,7 @@ def build_manifest(
     shard_dirs: list[Path],
     shard_manifests: list[dict[str, Any]],
     combined_counts: dict[str, int],
+    runtime_bank: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     subjects: list[str] = []
     seen_subjects: set[str] = set()
@@ -191,25 +157,19 @@ def build_manifest(
         "shards": [{"source_dir": str(path), "subjects": len(manifest.get("subject_ids", []))} for path, manifest in zip(shard_dirs, shard_manifests)],
         "concept_count": combined_counts.get("concept_registry.jsonl", 0),
         "active_concept_count": totals["active_concept_count"],
-        "active_card_count": combined_counts.get("runtime_cards.jsonl", 0),
-        "runtime_card_count": combined_counts.get("runtime_cards.jsonl", 0),
-        "runtime_card_claim_count": combined_counts.get("runtime_card_claims.jsonl", 0),
-        "runtime_card_quality_count": combined_counts.get("runtime_card_quality.jsonl", 0),
-        "runtime_card_index_count": combined_counts.get("runtime_card_index.jsonl", 0),
-        "evidence_pack_count": combined_counts.get("evidence_packs.jsonl", 0),
-        "avg_card_quality_score": (
-            sum(float(manifest.get("avg_card_quality_score") or 0.0) for manifest in shard_manifests)
-            / len(shard_manifests)
-            if shard_manifests
-            else 0.0
-        ),
+        "active_card_count": combined_counts.get("usage_cards.jsonl", 0),
+        "usage_claim_count": combined_counts.get("usage_card_claims.jsonl", 0),
+        "usage_index_count": combined_counts.get("usage_index.jsonl", 0),
+        "usage_faiss_index_count": totals["usage_faiss_index_count"],
         "evidence_section_count": totals["evidence_section_count"],
         "rejected_item_count": combined_counts.get("rejected_items.jsonl", 0),
         "model_network_calls": totals["model_network_calls"],
         "combined_counts": combined_counts,
+        "runtime_bank": runtime_bank,
         "construction_cutoff": datetime.now(timezone.utc).isoformat(),
-        "source_corpus_only": True,
-        "one_card_per_subject_concept": True,
+        "benchmark_content_accessed": False,
+        "uses_gold_answer": False,
+        "can_be_used_for_clean_global_mmlu_eval": True,
     }
 
 
@@ -223,21 +183,25 @@ def combine(args: argparse.Namespace) -> dict[str, Any]:
 
     combined_counts = combine_jsonl(output_dir, shard_dirs)
     shard_manifests = copy_component_manifests(output_dir, shard_dirs)
+    copy_usage_indexes(output_dir, shard_dirs)
     combine_evidence_sections(output_dir, shard_dirs)
-    runtime_index_meta = rebuild_runtime_card_index(
-        output_dir,
-        backend=args.card_index_backend,
-        service_url=args.wikipag_service_url,
-        timeout_s=args.embedding_timeout_s,
-    )
+    runtime_bank = None
+    if getattr(args, "write_runtime_bank", True):
+        runtime_bank = write_runtime_bank(
+            input_dir=output_dir,
+            build_embedding_index=bool(getattr(args, "build_runtime_embedding_index", True)),
+            embedding_model_dir=Path(getattr(args, "embedding_model_dir", "data/external/models/Qwen3-Embedding-4B")),
+            embedding_device=str(getattr(args, "embedding_device", "cuda")),
+            embedding_truncate_dim=int(getattr(args, "embedding_truncate_dim", 1024)),
+            embedding_batch_size=int(getattr(args, "embedding_batch_size", 64)),
+        )
     manifest = build_manifest(
         bank_version=args.bank_version,
         shard_dirs=shard_dirs,
         shard_manifests=shard_manifests,
         combined_counts=combined_counts,
+        runtime_bank=runtime_bank,
     )
-    manifest["runtime_card_index"] = runtime_index_meta
-    manifest["embedding_model"] = runtime_index_meta.get("embedding_model")
     (output_dir / "bank_manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
@@ -251,10 +215,9 @@ def combine(args: argparse.Namespace) -> dict[str, Any]:
                 "subjects": manifest["subjects"],
                 "active_concept_count": manifest["active_concept_count"],
                 "active_card_count": manifest["active_card_count"],
-                "runtime_card_index_count": manifest["runtime_card_index_count"],
-                "runtime_card_quality_count": manifest["runtime_card_quality_count"],
-                "source_corpus_only": True,
+                "benchmark_content_accessed": False,
                 "duplicate_subject_ids": manifest["duplicate_subject_ids"],
+                "runtime_bank": runtime_bank,
             },
             ensure_ascii=False,
             indent=2,
@@ -271,9 +234,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--shard-dirs", nargs="+", required=True)
     parser.add_argument("--output-dir", required=True)
     parser.add_argument("--bank-version", default="wikipag-clean-combined-v0.1")
-    parser.add_argument("--card-index-backend", choices=["wikipag", "hash"], default="wikipag")
-    parser.add_argument("--wikipag-service-url", default="http://127.0.0.1:8897")
-    parser.add_argument("--embedding-timeout-s", type=float, default=120.0)
+    parser.add_argument("--write-runtime-bank", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--build-runtime-embedding-index", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--embedding-model-dir", type=Path, default=Path("data/external/models/Qwen3-Embedding-4B"))
+    parser.add_argument("--embedding-device", default="cuda")
+    parser.add_argument("--embedding-truncate-dim", type=int, default=1024)
+    parser.add_argument("--embedding-batch-size", type=int, default=64)
     args = parser.parse_args(argv)
     manifest = combine(args)
     print(json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True))

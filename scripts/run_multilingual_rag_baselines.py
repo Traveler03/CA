@@ -3,12 +3,12 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
-import math
 import re
 import sqlite3
 import threading
 import time
 from collections import Counter, defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 import sys
@@ -21,11 +21,21 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from src.baselines.coral_wikipag import (
+    CoralCard,
+    DEFAULT_CORAL_BANK_DIR,
+    DEFAULT_LANGUAGE_POOL,
+    CoralUsageBank,
+    MockCoralUsageBank,
+    run_coral_wikipag,
+)
 from src.baselines.rag_methods import (
     LANGUAGE_NAMES,
     ProcessedPassage,
     RagMethod,
     WikiPassage,
+    adaptive_evidence_gate_messages,
+    drag_icl_solver_messages,
     dkm_refine_batch_messages,
     dkm_refine_messages,
     english_query_from_translated_payload,
@@ -42,6 +52,7 @@ from src.baselines.rag_methods import (
     translate_passage_messages,
     translate_query_messages,
 )
+from scripts.run_smoke_evaluation import zero_shot_prompt
 from src.clients.chat_client import AsyncChatClient
 from src.runtime.resolve_codex_provider import resolve_provider
 from src.utils.hash import stable_hash
@@ -62,10 +73,12 @@ def load_config(path: Path) -> dict[str, Any]:
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run adapted DKM-RAG, QTT-RAG, and tRAG smoke baselines.")
+    parser = argparse.ArgumentParser(description="Run adapted multilingual RAG smoke baselines.")
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--output-dir", type=Path)
-    parser.add_argument("--methods", nargs="+", choices=["trag", "dkm_rag", "qtt_rag"])
+    method_choices = ["zero_shot", "trag", "dkm_rag", "qtt_rag", "multirag", "drag_icl", "coral_wikipag"]
+    parser.add_argument("--methods", nargs="+", choices=method_choices)
+    parser.add_argument("--method", choices=method_choices, help="Single-method alias for --methods.")
     parser.add_argument("--input-jsonl", type=Path)
     parser.add_argument("--global-mmlu-dir", type=Path)
     parser.add_argument("--languages", nargs="+")
@@ -73,16 +86,22 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--seed", type=int)
     parser.add_argument("--top-k", type=int)
     parser.add_argument("--candidate-top-k", type=int)
+    parser.add_argument("--multirag-candidate-top-k", type=int)
+    parser.add_argument("--drag-icl-candidate-top-k", type=int)
     parser.add_argument("--final-top-k", type=int)
     parser.add_argument("--generation-top-k", type=int)
     parser.add_argument("--retrieval-mode", choices=["mock", "service", "faithful"])
     parser.add_argument("--retrieval-endpoint")
     parser.add_argument("--english-service-url")
     parser.add_argument("--multilingual-root", type=Path)
+    parser.add_argument("--multilingual-corpus-scope", choices=["all", "query_language"])
+    parser.add_argument("--multilingual-retrieval-languages", nargs="+")
+    parser.add_argument("--multilingual-search-workers", type=int)
+    parser.add_argument("--multilingual-per-language-top-k", type=int)
     parser.add_argument("--embedding-model-dir", type=Path)
     parser.add_argument("--embedding-device")
     parser.add_argument("--ef-search", type=int)
-    parser.add_argument("--reranker", choices=["lexical", "none"])
+    parser.add_argument("--reranker", choices=["lexical", "none", "score"])
     parser.add_argument("--live-model", action="store_true", help="Actually call the configured OpenAI-compatible model.")
     parser.add_argument("--local-vllm", action="store_true", help="Use a local vLLM model instead of the configured API model.")
     parser.add_argument("--local-model-dir", type=Path)
@@ -92,6 +111,38 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--local-batch-size", type=int)
     parser.add_argument("--local-batch-timeout-ms", type=int)
     parser.add_argument("--batch-max-tokens", type=int)
+    parser.add_argument("--answer-max-tokens", type=int)
+    parser.add_argument("--drag-icl-answer-max-tokens", type=int)
+    parser.add_argument("--adaptive-evidence-gate", action="store_true")
+    parser.add_argument("--gate-max-tokens", type=int)
+    parser.add_argument("--adaptive-min-rag-score", type=float)
+    parser.add_argument("--coral-bank-dir", type=Path)
+    parser.add_argument("--coral-retrieval-source", choices=["cards", "wikipag"])
+    parser.add_argument("--coral-language-pool", nargs="+")
+    parser.add_argument("--coral-max-corpora", type=int)
+    parser.add_argument("--coral-top-k-per-corpus", type=int)
+    parser.add_argument("--coral-final-top-k", type=int)
+    parser.add_argument("--coral-max-rounds", type=int)
+    parser.add_argument("--coral-planner-temperature", type=float)
+    parser.add_argument("--coral-critic-temperature", type=float)
+    parser.add_argument("--coral-generator-temperature", type=float)
+    parser.add_argument("--coral-generator-top-p", type=float)
+    parser.add_argument("--coral-critic-min-score", type=float)
+    parser.add_argument("--coral-min-total-score", type=float)
+    parser.add_argument("--coral-batch-critic", action="store_true")
+    parser.add_argument("--coral-translate-query", action="store_true")
+    parser.add_argument("--coral-dual-query-retrieval", action="store_true")
+    parser.add_argument("--coral-adaptive-direct-gate", action="store_true")
+    parser.add_argument("--coral-drag-fallback-on-card-gate", action="store_true")
+    parser.add_argument("--coral-drag-fallback-policy", choices=["gate_coral", "has_cards"])
+    parser.add_argument("--coral-drag-fallback-reranker", choices=["lexical", "none"])
+    parser.add_argument("--coral-translate-query-max-tokens", type=int)
+    parser.add_argument("--coral-translate-query-temperature", type=float)
+    parser.add_argument("--coral-max-card-chars", type=int)
+    parser.add_argument("--coral-max-triples", type=int)
+    parser.add_argument("--coral-planner-max-tokens", type=int)
+    parser.add_argument("--coral-critic-max-tokens", type=int)
+    parser.add_argument("--coral-sufficiency-max-tokens", type=int)
     parser.add_argument("--max-context-chars-per-doc", type=int)
     parser.add_argument("--max-concurrent-model-requests", type=int)
     parser.add_argument("--max-model-calls", type=int)
@@ -105,6 +156,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def merged_config(args: argparse.Namespace) -> dict[str, Any]:
     config = load_config(args.config)
+    if getattr(args, "method", None):
+        config["methods"] = [args.method]
     for key in [
         "output_dir",
         "methods",
@@ -115,12 +168,18 @@ def merged_config(args: argparse.Namespace) -> dict[str, Any]:
         "seed",
         "top_k",
         "candidate_top_k",
+        "multirag_candidate_top_k",
+        "drag_icl_candidate_top_k",
         "final_top_k",
         "generation_top_k",
         "retrieval_mode",
         "retrieval_endpoint",
         "english_service_url",
         "multilingual_root",
+        "multilingual_corpus_scope",
+        "multilingual_retrieval_languages",
+        "multilingual_search_workers",
+        "multilingual_per_language_top_k",
         "embedding_model_dir",
         "embedding_device",
         "ef_search",
@@ -132,6 +191,32 @@ def merged_config(args: argparse.Namespace) -> dict[str, Any]:
         "local_batch_size",
         "local_batch_timeout_ms",
         "batch_max_tokens",
+        "answer_max_tokens",
+        "drag_icl_answer_max_tokens",
+        "gate_max_tokens",
+        "adaptive_min_rag_score",
+        "coral_bank_dir",
+        "coral_retrieval_source",
+        "coral_language_pool",
+        "coral_max_corpora",
+        "coral_top_k_per_corpus",
+        "coral_final_top_k",
+        "coral_max_rounds",
+        "coral_planner_temperature",
+        "coral_critic_temperature",
+        "coral_generator_temperature",
+        "coral_generator_top_p",
+        "coral_critic_min_score",
+        "coral_min_total_score",
+        "coral_translate_query_max_tokens",
+        "coral_translate_query_temperature",
+        "coral_drag_fallback_reranker",
+        "coral_drag_fallback_policy",
+        "coral_max_card_chars",
+        "coral_max_triples",
+        "coral_planner_max_tokens",
+        "coral_critic_max_tokens",
+        "coral_sufficiency_max_tokens",
         "max_context_chars_per_doc",
         "max_concurrent_model_requests",
         "max_model_calls",
@@ -147,6 +232,18 @@ def merged_config(args: argparse.Namespace) -> dict[str, Any]:
     config["resume"] = bool(args.resume or config.get("resume", False))
     config["dry_run_plan"] = bool(args.dry_run_plan)
     config["qtt_keep_top_if_empty"] = bool(args.qtt_keep_top_if_empty or config.get("qtt_keep_top_if_empty", False))
+    config["adaptive_evidence_gate"] = bool(args.adaptive_evidence_gate or config.get("adaptive_evidence_gate", False))
+    config["coral_batch_critic"] = bool(args.coral_batch_critic or config.get("coral_batch_critic", False))
+    config["coral_translate_query"] = bool(args.coral_translate_query or config.get("coral_translate_query", False))
+    config["coral_dual_query_retrieval"] = bool(
+        args.coral_dual_query_retrieval or config.get("coral_dual_query_retrieval", False)
+    )
+    config["coral_adaptive_direct_gate"] = bool(
+        args.coral_adaptive_direct_gate or config.get("coral_adaptive_direct_gate", False)
+    )
+    config["coral_drag_fallback_on_card_gate"] = bool(
+        args.coral_drag_fallback_on_card_gate or config.get("coral_drag_fallback_on_card_gate", False)
+    )
     return config
 
 
@@ -184,11 +281,26 @@ def eval_key(method: str, row: dict[str, Any]) -> str:
     return f"{method}|{dataset}|{language}|{sample_id}"
 
 
-def estimate_model_calls(rows: list[dict[str, Any]], methods: list[RagMethod], generation_top_k: int) -> dict[str, int]:
+def estimate_model_calls(
+    rows: list[dict[str, Any]],
+    methods: list[RagMethod],
+    generation_top_k: int,
+    *,
+    adaptive_evidence_gate: bool = False,
+    config: dict[str, Any] | None = None,
+) -> dict[str, int]:
+    config = config or {}
     per_method: dict[str, int] = {}
     for method in methods:
         # tRAG: query translation + final answer.
         calls_per_row = 2
+        if method == "zero_shot":
+            calls_per_row = 1
+        if method in {"multirag", "drag_icl"}:
+            # MultiRAG-adapted and D-RAG-ICL-adapted do retrieval plus a
+            # single answer-generation call. No query/document translation and
+            # no training stage.
+            calls_per_row = 1
         if method == "dkm_rag":
             # Batch faithful adapted upper bound: translate final non-query-language
             # passages together, refine final passages together, answer once.
@@ -199,17 +311,92 @@ def estimate_model_calls(rows: list[dict[str, Any]], methods: list[RagMethod], g
             # passages together, score translations together, answer once.
             # Query is not translated.
             calls_per_row = 3
+        elif method == "coral_wikipag":
+            max_rounds = int(config.get("coral_max_rounds") or 3)
+            max_corpora = int(config.get("coral_max_corpora") or 3)
+            top_k_per_corpus = int(config.get("coral_top_k_per_corpus") or 5)
+            critic_calls = 1 if bool(config.get("coral_batch_critic")) else max_corpora * top_k_per_corpus
+            translate_calls = 1 if bool(config.get("coral_translate_query")) else 0
+            gate_calls = 2 if bool(config.get("coral_adaptive_direct_gate")) else 0
+            drag_fallback_calls = 1 if bool(config.get("coral_drag_fallback_on_card_gate")) else 0
+            # Per round: planner + per-card critic + sufficiency critic.
+            # Final answer is one generator call.
+            calls_per_row = translate_calls + max_rounds * (1 + critic_calls + 1) + 1 + gate_calls + drag_fallback_calls
+        if adaptive_evidence_gate and method in {"multirag", "drag_icl"}:
+            # RAG answer + independent localized no-evidence answer + evidence gate.
+            calls_per_row += 2
         per_method[method] = calls_per_row * len(rows)
     per_method["total"] = sum(per_method.values())
     return per_method
+
+
+def method_candidate_top_k(method: RagMethod, config: dict[str, Any]) -> int:
+    if method == "drag_icl":
+        return int(config.get("drag_icl_candidate_top_k") or 10)
+    if method == "multirag":
+        return int(config.get("multirag_candidate_top_k") or config.get("candidate_top_k") or config.get("top_k") or 50)
+    return int(config.get("candidate_top_k") or config.get("top_k") or 50)
+
+
+def method_answer_max_tokens(method: RagMethod, config: dict[str, Any]) -> int:
+    if method == "drag_icl":
+        return int(config.get("drag_icl_answer_max_tokens") or config.get("answer_max_tokens") or 2048)
+    return int(config.get("answer_max_tokens") or 512)
+
+
+def passage_language_counts(passages: list[WikiPassage]) -> dict[str, int]:
+    return dict(sorted(Counter(passage.language for passage in passages).items()))
 
 
 class MockModel:
     def __init__(self) -> None:
         self.calls = 0
 
-    async def json(self, messages: list[dict[str, str]], *, namespace: str) -> dict[str, Any]:
+    async def json(
+        self,
+        messages: list[dict[str, str]],
+        *,
+        namespace: str,
+        max_tokens: int | None = None,
+        temperature: float | None = None,
+        top_p: float | None = None,
+    ) -> dict[str, Any]:
         self.calls += 1
+        system = messages[0]["content"].lower() if messages else ""
+        if "coral-wikipag planner" in system:
+            return {"language_names": ["bn"], "rewritten_query": "mock rewritten query"}
+        if "coral-wikipag batch card critic" in system:
+            user = messages[-1]["content"] if messages else ""
+            count = max(1, user.count('"concept_id"'))
+            return {
+                "cards": [
+                    {
+                        "id": idx,
+                        "scores": {
+                            "relevance": 5.0,
+                            "usefulness": 5.0,
+                            "clarity_specificity": 5.0,
+                            "compatibility": 5.0,
+                        },
+                        "critique": "mock useful card",
+                    }
+                    for idx in range(count)
+                ]
+            }
+        if "coral-wikipag card critic" in system:
+            return {
+                "scores": {
+                    "relevance": 5.0,
+                    "usefulness": 5.0,
+                    "clarity_specificity": 5.0,
+                    "compatibility": 5.0,
+                },
+                "critique": "mock useful card",
+            }
+        if "coral-wikipag sufficiency critic" in system:
+            return {"enough_documents": True, "reason": "mock enough"}
+        if "conservative gate for coral-wikipag" in system:
+            return {"answer": "A", "selected_source": "coral", "evidence_status": "direct_card_support"}
         if "translation quality" in messages[0]["content"].lower() or "quality-aware" in messages[0]["content"].lower():
             user = messages[-1]["content"]
             if '"scores"' in user or "Keep the same order" in user:
@@ -248,8 +435,19 @@ class MockModel:
             return {"refined": ["mock refined passage" for _ in range(count)]}
         return {"answer": "A"}
 
-    async def text(self, messages: list[dict[str, str]], *, namespace: str) -> str:
+    async def text(
+        self,
+        messages: list[dict[str, str]],
+        *,
+        namespace: str,
+        max_tokens: int | None = None,
+        temperature: float | None = None,
+        top_p: float | None = None,
+    ) -> str:
         self.calls += 1
+        system = messages[0]["content"] if messages else ""
+        if "D-RAG-ICL" in system:
+            return "#Extraction\nmock\n#Explaination\nmock\n#Dialectic Argumentation\nmock\n#Answer\nAnswer: A"
         user = messages[-1]["content"]
         if "Translate the following English passage" in user:
             return "mock translated passage"
@@ -277,15 +475,23 @@ class LiveModel:
         )
         self.calls = 0
 
-    async def json(self, messages: list[dict[str, str]], *, namespace: str) -> dict[str, Any]:
+    async def json(
+        self,
+        messages: list[dict[str, str]],
+        *,
+        namespace: str,
+        max_tokens: int | None = None,
+        temperature: float | None = None,
+        top_p: float | None = None,
+    ) -> dict[str, Any]:
         self.calls += 1
-        max_tokens = 512
+        max_tokens = int(max_tokens or 512)
         if any(marker in namespace for marker in ["translate_docs_batch", "refine_docs_batch", "quality_docs_batch"]):
             max_tokens = 4096
         result = await self.client.create(
             messages,
             max_tokens=max_tokens,
-            temperature=0.0,
+            temperature=float(temperature if temperature is not None else 0.0),
             response_format={"type": "json_object"},
             retry_on_think=True,
         )
@@ -293,9 +499,22 @@ class LiveModel:
             raise RuntimeError(result.error or result.invalid_reason or "model call failed")
         return parse_json_object(result.content)
 
-    async def text(self, messages: list[dict[str, str]], *, namespace: str) -> str:
+    async def text(
+        self,
+        messages: list[dict[str, str]],
+        *,
+        namespace: str,
+        max_tokens: int | None = None,
+        temperature: float | None = None,
+        top_p: float | None = None,
+    ) -> str:
         self.calls += 1
-        result = await self.client.create(messages, max_tokens=512, temperature=0.0, retry_on_think=True)
+        result = await self.client.create(
+            messages,
+            max_tokens=int(max_tokens or 512),
+            temperature=float(temperature if temperature is not None else 0.0),
+            retry_on_think=True,
+        )
         if not result.ok:
             raise RuntimeError(result.error or result.invalid_reason or "model call failed")
         return result.content.strip()
@@ -315,6 +534,7 @@ class LocalVLLMModel:
         batch_max_tokens: int = 4096,
         local_batch_size: int = 1,
         local_batch_timeout_ms: int = 0,
+        cache_dir: Path | None = None,
     ) -> None:
         from transformers import AutoTokenizer
         from vllm import LLM
@@ -325,6 +545,7 @@ class LocalVLLMModel:
         self.batch_max_tokens = int(batch_max_tokens)
         self.local_batch_size = max(1, int(local_batch_size))
         self.local_batch_timeout_s = max(0.0, int(local_batch_timeout_ms) / 1000.0)
+        self.response_cache = JsonCache(cache_dir) if cache_dir is not None else None
         self._lock = asyncio.Lock()
         self._batch_queue: asyncio.Queue[dict[str, Any]] | None = None
         self._batch_worker_task: asyncio.Task[None] | None = None
@@ -350,21 +571,35 @@ class LocalVLLMModel:
         except TypeError:
             return self.tokenizer.apply_chat_template(messages, **kwargs)
 
-    def _generate_once(self, messages: list[dict[str, str]], *, max_tokens: int) -> str:
+    def _generate_once(
+        self,
+        messages: list[dict[str, str]],
+        *,
+        max_tokens: int,
+        temperature: float = 0.0,
+        top_p: float = 1.0,
+    ) -> str:
         from vllm import SamplingParams
 
         prompt = self._render(messages)
-        sampling = SamplingParams(temperature=0.0, max_tokens=int(max_tokens))
+        sampling = SamplingParams(temperature=float(temperature), top_p=float(top_p), max_tokens=int(max_tokens))
         outputs = self.llm.generate([prompt], sampling, use_tqdm=False)
         if not outputs or not outputs[0].outputs:
             return ""
         return (outputs[0].outputs[0].text or "").strip()
 
-    def _generate_many(self, messages_list: list[list[dict[str, str]]], *, max_tokens: int) -> list[str]:
+    def _generate_many(
+        self,
+        messages_list: list[list[dict[str, str]]],
+        *,
+        max_tokens: int,
+        temperature: float = 0.0,
+        top_p: float = 1.0,
+    ) -> list[str]:
         from vllm import SamplingParams
 
         prompts = [self._render(messages) for messages in messages_list]
-        sampling = SamplingParams(temperature=0.0, max_tokens=int(max_tokens))
+        sampling = SamplingParams(temperature=float(temperature), top_p=float(top_p), max_tokens=int(max_tokens))
         outputs = self.llm.generate(prompts, sampling, use_tqdm=False)
         texts: list[str] = []
         for output in outputs:
@@ -381,6 +616,8 @@ class LocalVLLMModel:
             batch = [first]
             deferred: list[dict[str, Any]] = []
             max_tokens = int(first["max_tokens"])
+            temperature = float(first["temperature"])
+            top_p = float(first["top_p"])
             if self.local_batch_timeout_s > 0:
                 await asyncio.sleep(self.local_batch_timeout_s)
             while len(batch) < self.local_batch_size:
@@ -388,7 +625,11 @@ class LocalVLLMModel:
                     item = self._batch_queue.get_nowait()
                 except asyncio.QueueEmpty:
                     break
-                if int(item["max_tokens"]) == max_tokens:
+                if (
+                    int(item["max_tokens"]) == max_tokens
+                    and float(item["temperature"]) == temperature
+                    and float(item["top_p"]) == top_p
+                ):
                     batch.append(item)
                 else:
                     deferred.append(item)
@@ -399,6 +640,8 @@ class LocalVLLMModel:
                     self._generate_many,
                     [item["messages"] for item in batch],
                     max_tokens=max_tokens,
+                    temperature=temperature,
+                    top_p=top_p,
                 )
             except Exception as exc:
                 for item in batch:
@@ -409,26 +652,104 @@ class LocalVLLMModel:
                     if not item["future"].done():
                         item["future"].set_result(text)
 
-    async def _generate(self, messages: list[dict[str, str]], *, max_tokens: int) -> str:
+    async def _generate(
+        self,
+        messages: list[dict[str, str]],
+        *,
+        max_tokens: int,
+        temperature: float = 0.0,
+        top_p: float = 1.0,
+    ) -> str:
         if self._batch_queue is None:
             async with self._lock:
-                return await asyncio.to_thread(self._generate_once, messages, max_tokens=max_tokens)
+                return await asyncio.to_thread(
+                    self._generate_once,
+                    messages,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    top_p=top_p,
+                )
         loop = asyncio.get_running_loop()
         future: asyncio.Future[str] = loop.create_future()
-        await self._batch_queue.put({"messages": messages, "max_tokens": int(max_tokens), "future": future})
+        await self._batch_queue.put(
+            {
+                "messages": messages,
+                "max_tokens": int(max_tokens),
+                "temperature": float(temperature),
+                "top_p": float(top_p),
+                "future": future,
+            }
+        )
         return await future
 
-    async def json(self, messages: list[dict[str, str]], *, namespace: str) -> dict[str, Any]:
+    async def json(
+        self,
+        messages: list[dict[str, str]],
+        *,
+        namespace: str,
+        max_tokens: int | None = None,
+        temperature: float | None = None,
+        top_p: float | None = None,
+    ) -> dict[str, Any]:
         self.calls += 1
-        max_tokens = 512
+        max_tokens = int(max_tokens or 512)
         if any(marker in namespace for marker in ["translate_docs_batch", "refine_docs_batch", "quality_docs_batch"]):
             max_tokens = self.batch_max_tokens
-        text = await self._generate(messages, max_tokens=max_tokens)
-        return parse_json_object(text)
+        cache_payload = {
+            "kind": "json",
+            "namespace": namespace,
+            "messages": messages,
+            "max_tokens": max_tokens,
+            "temperature": float(temperature if temperature is not None else 0.0),
+            "top_p": float(top_p if top_p is not None else 1.0),
+        }
+        if self.response_cache is not None:
+            cached = self.response_cache.get("local_vllm_response", cache_payload)
+            if cached is not None and isinstance(cached.get("payload"), dict):
+                return dict(cached["payload"])
+        text = await self._generate(
+            messages,
+            max_tokens=max_tokens,
+            temperature=float(temperature if temperature is not None else 0.0),
+            top_p=float(top_p if top_p is not None else 1.0),
+        )
+        payload = parse_json_object(text)
+        if self.response_cache is not None:
+            self.response_cache.set("local_vllm_response", cache_payload, {"payload": payload, "raw_text": text})
+        return payload
 
-    async def text(self, messages: list[dict[str, str]], *, namespace: str) -> str:
+    async def text(
+        self,
+        messages: list[dict[str, str]],
+        *,
+        namespace: str,
+        max_tokens: int | None = None,
+        temperature: float | None = None,
+        top_p: float | None = None,
+    ) -> str:
         self.calls += 1
-        return await self._generate(messages, max_tokens=512)
+        max_tokens = int(max_tokens or 512)
+        cache_payload = {
+            "kind": "text",
+            "namespace": namespace,
+            "messages": messages,
+            "max_tokens": max_tokens,
+            "temperature": float(temperature if temperature is not None else 0.0),
+            "top_p": float(top_p if top_p is not None else 1.0),
+        }
+        if self.response_cache is not None:
+            cached = self.response_cache.get("local_vllm_response", cache_payload)
+            if cached is not None and isinstance(cached.get("text"), str):
+                return str(cached["text"])
+        text = await self._generate(
+            messages,
+            max_tokens=max_tokens,
+            temperature=float(temperature if temperature is not None else 0.0),
+            top_p=float(top_p if top_p is not None else 1.0),
+        )
+        if self.response_cache is not None:
+            self.response_cache.set("local_vllm_response", cache_payload, {"text": text})
+        return text
 
     async def aclose(self) -> None:
         if self._batch_worker_task is not None:
@@ -491,10 +812,12 @@ class MultilingualFaissRetriever:
         *,
         root: Path,
         languages: list[str],
+        extra_shards: dict[str, Any] | None = None,
         model_dir: Path,
         device: str,
         cache: JsonCache,
         ef_search: int = 128,
+        search_workers: int | None = None,
     ) -> None:
         import faiss
         import numpy as np
@@ -504,29 +827,82 @@ class MultilingualFaissRetriever:
         self.np = np
         self.cache = cache
         self.model = SentenceTransformer(str(model_dir), device=device)
+        self.search_workers = max(1, int(search_workers or len(languages) or 1))
         self.shards: dict[str, dict[str, Any]] = {}
+        self.cache_signature: dict[str, dict[str, Any]] = {}
+        extra_shards = extra_shards or {}
         for language in languages:
-            lang_root = root / f"20231101.{language}"
-            faiss_dir = lang_root / "faiss"
-            index_path = faiss_dir / "hnsw.faiss"
-            ids_path = faiss_dir / "ids.txt"
-            db_path = faiss_dir / "offsets.sqlite"
-            passages_dir = lang_root / "passages"
+            shard_config = extra_shards.get(language)
+            index_path, ids_path, db_path, passages_dir = self._shard_paths(
+                root=root,
+                language=language,
+                shard_config=shard_config,
+            )
             if not index_path.exists():
                 raise FileNotFoundError(index_path)
+            if not ids_path.exists():
+                raise FileNotFoundError(ids_path)
+            if not db_path.exists():
+                raise FileNotFoundError(db_path)
+            if not passages_dir.exists():
+                raise FileNotFoundError(passages_dir)
             index = faiss.read_index(str(index_path))
             if hasattr(index, "hnsw"):
                 index.hnsw.efSearch = int(ef_search)
+            nprobe = shard_config.get("nprobe") if isinstance(shard_config, dict) else None
+            if nprobe is not None:
+                try:
+                    faiss.extract_index_ivf(index).nprobe = int(nprobe)
+                except RuntimeError:
+                    if hasattr(index, "nprobe"):
+                        index.nprobe = int(nprobe)
             ids = [line.rstrip("\n") for line in ids_path.open(encoding="utf-8")]
+            if len(ids) < int(index.ntotal):
+                raise ValueError(f"{language} ids.txt has {len(ids)} rows for index ntotal={index.ntotal}")
             self.shards[language] = {
                 "index": index,
                 "ids": ids,
                 "store": PassageStore(db_path=db_path, passages_dir=passages_dir),
             }
+            self.cache_signature[language] = {
+                "index_path": str(index_path),
+                "ids_path": str(ids_path),
+                "db_path": str(db_path),
+                "passages_dir": str(passages_dir),
+                "ntotal": int(index.ntotal),
+            }
         dims = {int(shard["index"].d) for shard in self.shards.values()}
         if len(dims) != 1:
             raise ValueError(f"mixed multilingual index dimensions: {dims}")
         self.dim = dims.pop()
+
+    @staticmethod
+    def _shard_paths(
+        *,
+        root: Path,
+        language: str,
+        shard_config: Any,
+    ) -> tuple[Path, Path, Path, Path]:
+        if shard_config is not None:
+            if not isinstance(shard_config, dict):
+                raise TypeError(f"multilingual_extra_shards.{language} must be a mapping")
+            try:
+                return (
+                    Path(shard_config["index_path"]),
+                    Path(shard_config["ids_path"]),
+                    Path(shard_config["db_path"]),
+                    Path(shard_config["passages_dir"]),
+                )
+            except KeyError as exc:
+                raise KeyError(f"multilingual_extra_shards.{language} missing {exc.args[0]}") from exc
+        lang_root = root / f"20231101.{language}"
+        faiss_dir = lang_root / "faiss"
+        return (
+            faiss_dir / "hnsw.faiss",
+            faiss_dir / "ids.txt",
+            faiss_dir / "offsets.sqlite",
+            lang_root / "passages",
+        )
 
     def close(self) -> None:
         for shard in self.shards.values():
@@ -550,22 +926,42 @@ class MultilingualFaissRetriever:
             raise ValueError(f"embedding shape {vector.shape} != (1, {self.dim})")
         return vector
 
-    def retrieve(self, query: str, *, top_k: int) -> list[WikiPassage]:
-        payload = {"query": query, "top_k": int(top_k), "languages": sorted(self.shards)}
+    def retrieve(
+        self,
+        query: str,
+        *,
+        top_k: int,
+        languages: list[str] | None = None,
+        per_language_top_k: int | None = None,
+    ) -> list[WikiPassage]:
+        search_languages = list(languages or sorted(self.shards))
+        missing = [language for language in search_languages if language not in self.shards]
+        if missing:
+            raise ValueError(f"multilingual retriever missing language shards: {missing}")
+        per_shard_top_k = int(per_language_top_k or top_k)
+        payload = {
+            "query": query,
+            "top_k": int(top_k),
+            "per_language_top_k": per_shard_top_k,
+            "languages": sorted(search_languages),
+            "shards": {language: self.cache_signature[language] for language in sorted(search_languages)},
+        }
         cached = self.cache.get("multilingual_retrieval", payload)
         if cached is not None:
             return [passage_from_payload(item) for item in cached.get("results", [])]
         query_vec = self._encode(query)
         candidates: list[WikiPassage] = []
-        per_shard_top_k = max(int(top_k), int(math.ceil(int(top_k) / max(1, len(self.shards)))))
-        for language, shard in self.shards.items():
+
+        def search_one(language: str) -> list[WikiPassage]:
+            shard = self.shards[language]
             scores, hits = shard["index"].search(query_vec, per_shard_top_k)
+            local_candidates: list[WikiPassage] = []
             for score, hit in zip(scores[0].tolist(), hits[0].tolist()):
                 if hit < 0:
                     continue
                 passage_id = shard["ids"][int(hit)]
                 passage = shard["store"].fetch(passage_id)
-                candidates.append(
+                local_candidates.append(
                     WikiPassage(
                         passage_id=str(passage_id),
                         title=str(passage.get("title") or ""),
@@ -575,7 +971,18 @@ class MultilingualFaissRetriever:
                         language=language,
                     )
                 )
-        candidates.sort(key=lambda item: item.score, reverse=True)
+            return local_candidates
+
+        if len(search_languages) > 1 and self.search_workers > 1:
+            workers = min(self.search_workers, len(search_languages))
+            with ThreadPoolExecutor(max_workers=workers) as executor:
+                future_map = {executor.submit(search_one, language): language for language in search_languages}
+                for future in as_completed(future_map):
+                    candidates.extend(future.result())
+        else:
+            for language in search_languages:
+                candidates.extend(search_one(language))
+        candidates.sort(key=lambda item: (item.score, item.language, item.passage_id), reverse=True)
         results = [with_rank(item, rank) for rank, item in enumerate(candidates[: int(top_k)], start=1)]
         self.cache.set("multilingual_retrieval", payload, {"results": [passage_to_payload(item) for item in results]})
         return results
@@ -585,10 +992,91 @@ class MultilingualFaissRetriever:
 class RetrievalResources:
     cache: JsonCache
     multilingual: MultilingualFaissRetriever | None = None
+    coral_bank: Any | None = None
 
     def close(self) -> None:
         if self.multilingual is not None:
             self.multilingual.close()
+        if self.coral_bank is not None:
+            self.coral_bank.close()
+
+
+class WikipagCoralPassageBank:
+    """Adapter that lets CORAL retrieve raw Wikipag passages instead of usage cards.
+
+    The CORAL pipeline expects a bank-like object with retrieve() and
+    triples_for_concepts().  This adapter preserves that interface but sources
+    evidence only from the existing multilingual Wikipag FAISS indexes.
+    """
+
+    def __init__(self, *, retriever: MultilingualFaissRetriever, cache: JsonCache | None = None) -> None:
+        self.retriever = retriever
+        self.cache = cache
+
+    def close(self) -> None:
+        return None
+
+    def retrieve(self, *, subject: str, query: str, language: str, top_k: int) -> list[CoralCard]:
+        payload = {"subject": subject, "query": query, "language": language, "top_k": int(top_k)}
+        if self.cache is not None:
+            cached = self.cache.get("coral_wikipag_raw_passage_retrieval", payload)
+            if cached is not None:
+                return [CoralCard(**item) for item in cached.get("results", [])]
+        passages = self.retriever.retrieve(query, top_k=int(top_k), languages=[language])
+        cards = [
+            CoralCard(
+                language=passage.language,
+                document_id=passage.passage_id,
+                subject=subject,
+                concept_id=f"{subject}:wikipag_raw",
+                usage_id="",
+                index_key=f"{passage.title} :: {passage.section or ''}".strip(),
+                payload=passage.text,
+                text=(
+                    "Wikipag passage evidence\n"
+                    f"Title: {passage.title}\n"
+                    f"Section: {passage.section or ''}\n"
+                    f"Language: {passage.language}\n"
+                    f"Passage ID: {passage.passage_id}\n\n"
+                    f"{passage.text}"
+                ),
+                score=passage.score,
+                rank=int(passage.rank or idx),
+                metadata={
+                    "source_kind": "wikipag_passage",
+                    "title": passage.title,
+                    "section": passage.section,
+                },
+            )
+            for idx, passage in enumerate(passages, start=1)
+        ]
+        if self.cache is not None:
+            self.cache.set(
+                "coral_wikipag_raw_passage_retrieval",
+                payload,
+                {
+                    "results": [
+                        {
+                            "language": card.language,
+                            "document_id": card.document_id,
+                            "subject": card.subject,
+                            "concept_id": card.concept_id,
+                            "usage_id": card.usage_id,
+                            "index_key": card.index_key,
+                            "payload": card.payload,
+                            "text": card.text,
+                            "score": card.score,
+                            "rank": card.rank,
+                            "metadata": card.metadata,
+                        }
+                        for card in cards
+                    ]
+                },
+            )
+        return cards
+
+    def triples_for_concepts(self, concept_ids: list[str], *, max_triples: int) -> list[dict[str, Any]]:
+        return []
 
 
 def with_rank(passage: WikiPassage, rank: int) -> WikiPassage:
@@ -627,8 +1115,14 @@ def passage_from_payload(item: dict[str, Any]) -> WikiPassage:
     )
 
 
-async def retrieve_english_passages(query: str, *, config: dict[str, Any], resources: RetrievalResources) -> list[WikiPassage]:
-    top_k = int(config.get("candidate_top_k") or config.get("top_k") or 50)
+async def retrieve_english_passages(
+    query: str,
+    *,
+    config: dict[str, Any],
+    resources: RetrievalResources,
+    top_k: int | None = None,
+) -> list[WikiPassage]:
+    top_k = int(top_k or config.get("candidate_top_k") or config.get("top_k") or 50)
     if config.get("retrieval_mode") == "mock":
         return [
             WikiPassage(
@@ -677,11 +1171,16 @@ async def retrieve_multilingual_passages(
     config: dict[str, Any],
     row: dict[str, Any],
     resources: RetrievalResources,
+    top_k: int | None = None,
 ) -> list[WikiPassage]:
-    top_k = int(config.get("candidate_top_k") or config.get("top_k") or 50)
+    top_k = int(top_k or config.get("candidate_top_k") or config.get("top_k") or 50)
+    search_languages = multilingual_search_languages(config, row)
     if config.get("retrieval_mode") == "mock":
         query_language = supported_language(row)
-        languages = [query_language, *[language for language in LANGUAGE_NAMES if language not in {query_language, "en"}]]
+        languages = search_languages or [
+            query_language,
+            *[language for language in LANGUAGE_NAMES if language not in {query_language}],
+        ]
         subject = str(row.get("subject") or "unknown")
         return [
             WikiPassage(
@@ -697,7 +1196,33 @@ async def retrieve_multilingual_passages(
         ]
     if resources.multilingual is None:
         raise RuntimeError("multilingual retriever is not initialized")
-    return resources.multilingual.retrieve(query, top_k=top_k)
+    return resources.multilingual.retrieve(
+        query,
+        top_k=top_k,
+        languages=search_languages,
+        per_language_top_k=(
+            int(config["multilingual_per_language_top_k"])
+            if config.get("multilingual_per_language_top_k") is not None
+            else None
+        ),
+    )
+
+
+def multilingual_search_languages(config: dict[str, Any], row: dict[str, Any]) -> list[str] | None:
+    if str(config.get("multilingual_corpus_scope") or "all") == "query_language":
+        return [supported_language(row)]
+    configured = config.get("multilingual_retrieval_languages")
+    if configured:
+        output: list[str] = []
+        seen: set[str] = set()
+        for raw_language in configured:
+            language = str(raw_language).strip()
+            if not language or language in seen:
+                continue
+            seen.add(language)
+            output.append(language)
+        return output
+    return None
 
 
 _TOKEN_RE = re.compile(r"[\w\u0980-\u09FF\u0900-\u097F\u0C00-\u0C7F]+", flags=re.UNICODE)
@@ -711,7 +1236,7 @@ def lexical_rerank(
     reranker: str,
     query_text: str | None = None,
 ) -> list[WikiPassage]:
-    if reranker == "none":
+    if reranker in {"none", "score"}:
         return [with_rank(passage, rank) for rank, passage in enumerate(passages[:final_top_k], start=1)]
     query_language = supported_language(row)
     query_tokens = set(token.lower() for token in _TOKEN_RE.findall(query_text or retrieval_query_text(row)))
@@ -742,7 +1267,7 @@ async def process_passages(
     final_top_k = int(config.get("final_top_k") or config.get("generation_top_k") or min(5, len(passages)))
     selected = passages[:final_top_k]
     processed: list[ProcessedPassage] = []
-    if method == "trag":
+    if method in {"trag", "multirag", "drag_icl"}:
         return [ProcessedPassage(passage=passage) for passage in selected]
     translated_by_idx = [passage.text for passage in selected]
     non_query_indices = [idx for idx, passage in enumerate(selected) if passage.language != language]
@@ -852,6 +1377,27 @@ def parse_answer_label(payload: dict[str, Any], row: dict[str, Any]) -> tuple[st
     return None, False
 
 
+def parse_answer_label_from_text(text: str, row: dict[str, Any]) -> tuple[str | None, bool]:
+    labels = set(option_labels(row.get("options") or {}))
+    try:
+        pred, valid = parse_answer_label(parse_json_object(text), row)
+        if valid:
+            return pred, valid
+    except Exception:
+        pass
+    patterns = [
+        r"(?:#\s*Answer|Answer|Final answer|Final Answer|Jibu|उत्तर|जवाफ|సమాధానం)\s*[:：\n\r \-]*([A-J])\b",
+        r"\b([A-J])\b\s*$",
+    ]
+    for pattern in patterns:
+        matches = re.findall(pattern, text or "", flags=re.IGNORECASE | re.MULTILINE)
+        for match in reversed(matches):
+            answer = str(match).strip().upper()
+            if answer in labels:
+                return answer, True
+    return None, False
+
+
 def normalize_text_list(value: Any, count: int, fallback: list[str]) -> list[str]:
     if not isinstance(value, list):
         value = []
@@ -881,6 +1427,112 @@ def truncate_context_text(text: str, *, max_chars: int) -> str:
     return text[:max_chars].rstrip() + "\n...[truncated]"
 
 
+async def run_drag_icl_answer_only(
+    row: dict[str, Any],
+    *,
+    model: MockModel | LiveModel | LocalVLLMModel,
+    config: dict[str, Any],
+    resources: RetrievalResources,
+    row_key: str,
+    reranker: str | None = None,
+) -> dict[str, Any]:
+    """Run the D-RAG-ICL answer path as a local fallback without changing method identity."""
+
+    started = time.perf_counter()
+    method: RagMethod = "drag_icl"
+    candidate_top_k = method_candidate_top_k(method, config)
+    final_top_k = int(config.get("final_top_k") or config.get("generation_top_k") or 5)
+    retrieval_query = retrieval_query_text(row)
+    retrieval_scope = "multilingual"
+    candidate_passages = await retrieve_multilingual_passages(
+        retrieval_query,
+        config=config,
+        row=row,
+        resources=resources,
+        top_k=candidate_top_k,
+    )
+    retrieval_languages = multilingual_search_languages(config, row)
+    selected_reranker = str(reranker or config.get("reranker") or "lexical")
+    passages = lexical_rerank(
+        row,
+        candidate_passages,
+        final_top_k=final_top_k,
+        reranker=selected_reranker,
+        query_text=retrieval_query,
+    )
+    processed = await process_passages(row, method, passages, model=model, config=config, row_key=row_key)
+    kept = [item for item in processed if item.keep]
+    max_context_chars_per_doc = int(config.get("max_context_chars_per_doc") or 1200)
+    contexts = [
+        truncate_context_text(item.context_text(method=method), max_chars=max_context_chars_per_doc)
+        for item in kept
+    ]
+    answer_messages = drag_icl_solver_messages(
+        row,
+        retrieval_query=retrieval_query,
+        contexts=contexts,
+        retrieval_scope=retrieval_scope,
+    )
+    raw_answer_text = await model.text(
+        answer_messages,
+        namespace=f"{row_key}.answer_text",
+        max_tokens=method_answer_max_tokens(method, config),
+    )
+    pred, valid = parse_answer_label_from_text(raw_answer_text, row)
+    return {
+        "method": "drag_icl",
+        "prediction": pred,
+        "valid": valid,
+        "retrieval_query": retrieval_query,
+        "retrieval_scope": retrieval_scope,
+        "retrieval_languages": retrieval_languages,
+        "candidate_top_k": candidate_top_k,
+        "multilingual_per_language_top_k": config.get("multilingual_per_language_top_k"),
+        "final_top_k": final_top_k,
+        "reranker": selected_reranker,
+        "raw_answer_preview": raw_answer_text[:500],
+        "candidate_count": len(candidate_passages),
+        "candidate_language_counts": passage_language_counts(candidate_passages),
+        "selected_language_counts": passage_language_counts(passages),
+        "retrieved_candidates": [
+            {
+                "passage_id": passage.passage_id,
+                "title": passage.title,
+                "section": passage.section,
+                "score": passage.score,
+                "language": passage.language,
+                "rank": passage.rank,
+                "text_preview": passage.text[:300],
+            }
+            for passage in candidate_passages
+        ],
+        "retrieved": [
+            {
+                "passage_id": passage.passage_id,
+                "title": passage.title,
+                "section": passage.section,
+                "score": passage.score,
+                "language": passage.language,
+                "rank": passage.rank,
+                "text_preview": passage.text[:300],
+            }
+            for passage in passages
+        ],
+        "processed_context": [
+            {
+                "passage_id": item.passage.passage_id,
+                "outcome": item.outcome,
+                "keep": item.keep,
+                "quality_scores": item.quality_scores,
+                "translated_preview": (item.translated_text or "")[:300],
+                "refined_preview": (item.refined_text or "")[:300],
+            }
+            for item in processed
+        ],
+        "latency_s": time.perf_counter() - started,
+    }
+
+
 async def run_one(
     row: dict[str, Any],
     method: RagMethod,
@@ -891,7 +1543,90 @@ async def run_one(
 ) -> dict[str, Any]:
     started = time.perf_counter()
     key = eval_key(method, row)
-    candidate_top_k = int(config.get("candidate_top_k") or config.get("top_k") or 50)
+    if method == "zero_shot":
+        answer_payload = await model.json(
+            zero_shot_prompt(row),
+            namespace=f"{key}.answer",
+            max_tokens=method_answer_max_tokens(method, config),
+        )
+        pred, valid = parse_answer_label(answer_payload, row)
+        gold = str(row.get("answer") or "").strip().upper()
+        return {
+            "eval_key": key,
+            "method": method,
+            "dataset": row.get("_dataset") or row.get("dataset") or "global_mmlu",
+            "language": row.get("language") or row.get("_language"),
+            "subject": row.get("subject"),
+            "sample_id": row.get("sample_id") or row.get("question_id") or row.get("id"),
+            "answer": gold,
+            "prediction": pred,
+            "valid": valid,
+            "correct": bool(valid and pred == gold),
+            "answer_payload": answer_payload,
+            "candidate_count": 0,
+            "retrieved_candidates": [],
+            "retrieved": [],
+            "processed_context": [],
+            "latency_s": time.perf_counter() - started,
+        }
+    if method == "coral_wikipag":
+        if resources.coral_bank is None:
+            raise RuntimeError("CORAL-Wikipag bank is not initialized")
+        result = await run_coral_wikipag(
+            row,
+            model=model,
+            bank=resources.coral_bank,
+            config=config,
+            row_key=key,
+            parse_answer_label=parse_answer_label,
+        )
+        result["coral_drag_fallback_enabled"] = bool(config.get("coral_drag_fallback_on_card_gate"))
+        result["coral_drag_fallback_applied"] = False
+        fallback_policy = str(config.get("coral_drag_fallback_policy") or "gate_coral")
+        result["coral_drag_fallback_policy"] = fallback_policy
+        should_run_drag_fallback = False
+        if bool(config.get("coral_drag_fallback_on_card_gate")):
+            if fallback_policy == "has_cards":
+                should_run_drag_fallback = bool(result.get("final_cards"))
+            else:
+                should_run_drag_fallback = str(result.get("gate_selected_source") or "").lower() == "coral"
+        if should_run_drag_fallback:
+            result["coral_original_prediction"] = result.get("prediction")
+            result["coral_original_valid"] = result.get("valid")
+            result["coral_original_correct"] = result.get("correct")
+            try:
+                fallback = await run_drag_icl_answer_only(
+                    row,
+                    model=model,
+                    config=config,
+                    resources=resources,
+                    row_key=f"{key}.coral_drag_fallback",
+                    reranker=str(config.get("coral_drag_fallback_reranker") or config.get("reranker") or "lexical"),
+                )
+            except Exception as exc:
+                fallback = {
+                    "method": "drag_icl",
+                    "valid": False,
+                    "prediction": None,
+                    "error": f"{type(exc).__name__}: {exc}",
+                }
+            result["coral_drag_fallback"] = fallback
+            result["coral_drag_fallback_prediction"] = fallback.get("prediction")
+            result["coral_drag_fallback_valid"] = bool(fallback.get("valid"))
+            if fallback.get("valid"):
+                pred = str(fallback.get("prediction") or "").strip().upper()
+                gold = str(row.get("answer") or "").strip().upper()
+                result["prediction"] = pred
+                result["valid"] = True
+                result["correct"] = bool(pred == gold)
+                result["coral_drag_fallback_applied"] = True
+                result["coral_drag_fallback_reason"] = (
+                    "has_cards" if fallback_policy == "has_cards" else "gate_selected_coral"
+                )
+            else:
+                result["coral_drag_fallback_reason"] = "fallback_invalid"
+        return result
+    candidate_top_k = method_candidate_top_k(method, config)
     final_top_k = int(config.get("final_top_k") or config.get("generation_top_k") or 5)
     reranker = str(config.get("reranker") or "lexical")
     translated_query_payload: dict[str, Any] | None = None
@@ -905,11 +1640,25 @@ async def run_one(
             translated_query_payload = mock_translated_question(row)
         retrieval_query = english_query_from_translated_payload(translated_query_payload)
         retrieval_scope = "english_only"
-        candidate_passages = await retrieve_english_passages(retrieval_query, config=config, resources=resources)
+        candidate_passages = await retrieve_english_passages(
+            retrieval_query,
+            config=config,
+            resources=resources,
+            top_k=candidate_top_k,
+        )
     else:
         retrieval_query = retrieval_query_text(row)
         retrieval_scope = "multilingual"
-        candidate_passages = await retrieve_multilingual_passages(retrieval_query, config=config, row=row, resources=resources)
+        retrieval_languages = multilingual_search_languages(config, row)
+        candidate_passages = await retrieve_multilingual_passages(
+            retrieval_query,
+            config=config,
+            row=row,
+            resources=resources,
+            top_k=candidate_top_k,
+        )
+    if method == "trag":
+        retrieval_languages = ["en"]
     passages = lexical_rerank(
         row,
         candidate_passages,
@@ -924,18 +1673,101 @@ async def run_one(
         truncate_context_text(item.context_text(method=method), max_chars=max_context_chars_per_doc)
         for item in kept
     ]
-    answer_payload = await model.json(
-        solver_messages(
+    if method == "drag_icl":
+        answer_messages = drag_icl_solver_messages(
+            row,
+            retrieval_query=retrieval_query,
+            contexts=contexts,
+            retrieval_scope=retrieval_scope,
+        )
+    else:
+        answer_messages = solver_messages(
             row,
             method=method,
             retrieval_query=retrieval_query,
             contexts=contexts,
             translated_query=translated_query_payload,
             retrieval_scope=retrieval_scope,
-        ),
-        namespace=f"{key}.answer",
-    )
-    pred, valid = parse_answer_label(answer_payload, row)
+        )
+    raw_answer_text: str | None = None
+    if method == "drag_icl":
+        raw_answer_text = await model.text(
+            answer_messages,
+            namespace=f"{key}.answer_text",
+            max_tokens=method_answer_max_tokens(method, config),
+        )
+        pred, valid = parse_answer_label_from_text(raw_answer_text, row)
+        answer_payload = {"answer": pred, "raw_text_preview": raw_answer_text[:500]}
+    else:
+        answer_payload = await model.json(
+            answer_messages,
+            namespace=f"{key}.answer",
+            max_tokens=method_answer_max_tokens(method, config),
+        )
+        pred, valid = parse_answer_label(answer_payload, row)
+    rag_prediction = pred
+    rag_valid = valid
+    zero_shot_payload: dict[str, Any] | None = None
+    zero_shot_prediction: str | None = None
+    zero_shot_valid = False
+    gate_payload: dict[str, Any] | None = None
+    gate_selected_source: str | None = None
+    gate_evidence_status: str | None = None
+    score_gate_applied = False
+    top_retrieval_score = float(passages[0].score) if passages else None
+    if bool(config.get("adaptive_evidence_gate")) and method in {"multirag", "drag_icl"}:
+        try:
+            zero_shot_payload = await model.json(
+                zero_shot_prompt(row),
+                namespace=f"{key}.adaptive_zero_shot",
+                max_tokens=int(config.get("answer_max_tokens") or 512),
+            )
+            zero_shot_prediction, zero_shot_valid = parse_answer_label(zero_shot_payload, row)
+        except Exception as exc:
+            zero_shot_payload = {"error": f"{type(exc).__name__}: {exc}"}
+            zero_shot_prediction, zero_shot_valid = None, False
+        try:
+            gate_payload = await model.json(
+                adaptive_evidence_gate_messages(
+                    row,
+                    method=method,
+                    retrieval_query=retrieval_query,
+                    contexts=contexts,
+                    zero_shot_answer=zero_shot_prediction,
+                    rag_answer=rag_prediction,
+                ),
+                namespace=f"{key}.adaptive_gate",
+                max_tokens=int(config.get("gate_max_tokens") or 256),
+            )
+            gated_pred, gated_valid = parse_answer_label(gate_payload, row)
+            selected_source_raw = str(gate_payload.get("selected_source") or "").strip().lower()
+            gate_selected_source = selected_source_raw if selected_source_raw in {"zero_shot", "rag"} else None
+            gate_evidence_status = str(gate_payload.get("evidence_status") or "").strip()
+        except Exception as exc:
+            gate_payload = {"error": f"{type(exc).__name__}: {exc}"}
+            gated_pred, gated_valid = None, False
+        if gated_valid and gated_pred in {zero_shot_prediction, rag_prediction}:
+            pred, valid = gated_pred, True
+        elif gate_selected_source == "rag" and rag_valid:
+            pred, valid = rag_prediction, True
+        elif zero_shot_valid:
+            pred, valid = zero_shot_prediction, True
+            gate_selected_source = gate_selected_source or "zero_shot"
+        else:
+            pred, valid = rag_prediction, rag_valid
+            gate_selected_source = gate_selected_source or "rag"
+        raw_min_rag_score = config.get("adaptive_min_rag_score")
+        min_rag_score = float(raw_min_rag_score) if raw_min_rag_score is not None else 0.0
+        if (
+            min_rag_score > 0.0
+            and zero_shot_valid
+            and top_retrieval_score is not None
+            and top_retrieval_score < min_rag_score
+        ):
+            pred, valid = zero_shot_prediction, True
+            gate_selected_source = "zero_shot"
+            gate_evidence_status = f"score_below_threshold:{top_retrieval_score:.4f}<{min_rag_score:.4f}"
+            score_gate_applied = True
     gold = str(row.get("answer") or "").strip().upper()
     return {
         "eval_key": key,
@@ -948,12 +1780,31 @@ async def run_one(
         "prediction": pred,
         "valid": valid,
         "correct": bool(valid and pred == gold),
+        "adaptive_evidence_gate": bool(config.get("adaptive_evidence_gate")) and method in {"multirag", "drag_icl"},
+        "rag_prediction": rag_prediction,
+        "rag_valid": rag_valid,
+        "zero_shot_prediction": zero_shot_prediction,
+        "zero_shot_valid": zero_shot_valid,
+        "zero_shot_payload": zero_shot_payload,
+        "gate_selected_source": gate_selected_source,
+        "gate_evidence_status": gate_evidence_status,
+        "gate_payload": gate_payload,
+        "adaptive_min_rag_score": config.get("adaptive_min_rag_score"),
+        "top_retrieval_score": top_retrieval_score,
+        "score_gate_applied": score_gate_applied,
         "retrieval_query": retrieval_query,
         "retrieval_scope": retrieval_scope,
+        "retrieval_languages": retrieval_languages,
         "candidate_top_k": candidate_top_k,
+        "multilingual_per_language_top_k": config.get("multilingual_per_language_top_k"),
         "final_top_k": final_top_k,
+        "reranker": reranker,
         "translated_query": translated_query_payload,
+        "answer_payload": answer_payload,
+        "raw_answer_preview": raw_answer_text[:500] if raw_answer_text is not None else None,
         "candidate_count": len(candidate_passages),
+        "candidate_language_counts": passage_language_counts(candidate_passages),
+        "selected_language_counts": passage_language_counts(passages),
         "retrieved_candidates": [
             {
                 "passage_id": passage.passage_id,
@@ -1046,7 +1897,14 @@ async def async_main(args: argparse.Namespace) -> int:
     methods: list[RagMethod] = list(config.get("methods") or ["trag", "dkm_rag", "qtt_rag"])
     final_top_k = int(config.get("final_top_k") or config.get("generation_top_k") or 5)
     candidate_top_k = int(config.get("candidate_top_k") or config.get("top_k") or 50)
-    estimated = estimate_model_calls(rows, methods, final_top_k)
+    per_method_candidate_top_k = {method: method_candidate_top_k(method, config) for method in methods}
+    estimated = estimate_model_calls(
+        rows,
+        methods,
+        final_top_k,
+        adaptive_evidence_gate=bool(config.get("adaptive_evidence_gate")),
+        config=config,
+    )
     max_model_calls = int(config.get("max_model_calls") or 800)
     requested_concurrency = int(config.get("max_concurrent_model_requests") or 4)
     max_concurrency = requested_concurrency if config.get("allow_full_run") else min(requested_concurrency, 4)
@@ -1056,11 +1914,35 @@ async def async_main(args: argparse.Namespace) -> int:
         "estimated_model_calls": estimated,
         "max_model_calls": max_model_calls,
         "candidate_top_k": candidate_top_k,
+        "per_method_candidate_top_k": per_method_candidate_top_k,
         "final_top_k": final_top_k,
         "live_model": bool(config.get("live_model")),
         "allow_full_run": bool(config.get("allow_full_run")),
         "retrieval_mode": config.get("retrieval_mode"),
+        "multilingual_corpus_scope": config.get("multilingual_corpus_scope") or "all",
+        "multilingual_retrieval_languages": list(config.get("multilingual_retrieval_languages") or []),
+        "multilingual_search_workers": config.get("multilingual_search_workers"),
+        "multilingual_per_language_top_k": config.get("multilingual_per_language_top_k"),
         "reranker": config.get("reranker") or "lexical",
+        "adaptive_evidence_gate": bool(config.get("adaptive_evidence_gate")),
+        "adaptive_min_rag_score": config.get("adaptive_min_rag_score"),
+        "coral_retrieval_source": config.get("coral_retrieval_source") or "cards",
+        "coral_bank_dir": (
+            None
+            if str(config.get("coral_retrieval_source") or "cards") == "wikipag"
+            else str(config.get("coral_bank_dir") or DEFAULT_CORAL_BANK_DIR)
+        ),
+        "coral_language_pool": list(config.get("coral_language_pool") or DEFAULT_LANGUAGE_POOL),
+        "coral_max_corpora": config.get("coral_max_corpora"),
+        "coral_top_k_per_corpus": config.get("coral_top_k_per_corpus"),
+        "coral_max_rounds": config.get("coral_max_rounds"),
+        "coral_batch_critic": bool(config.get("coral_batch_critic")),
+        "coral_translate_query": bool(config.get("coral_translate_query")),
+        "coral_dual_query_retrieval": bool(config.get("coral_dual_query_retrieval")),
+        "coral_adaptive_direct_gate": bool(config.get("coral_adaptive_direct_gate")),
+        "coral_drag_fallback_on_card_gate": bool(config.get("coral_drag_fallback_on_card_gate")),
+        "coral_drag_fallback_policy": config.get("coral_drag_fallback_policy") or "gate_coral",
+        "coral_drag_fallback_reranker": config.get("coral_drag_fallback_reranker"),
         "output_dir": str(output_dir),
     }
     print(json.dumps({"event": "plan", **plan}, ensure_ascii=False), flush=True)
@@ -1072,22 +1954,67 @@ async def async_main(args: argparse.Namespace) -> int:
 
     prediction_path = output_dir / "predictions.jsonl"
     error_path = output_dir / "errors.jsonl"
-    existing = {str(row.get("eval_key")): row for row in read_jsonl(prediction_path)} if config.get("resume") and prediction_path.exists() else {}
+    # Failed records are retained for audit in errors.jsonl, but must not block
+    # a resumable retry after a recoverable configuration or service failure.
+    existing = (
+        {str(row.get("eval_key")): row for row in read_jsonl(prediction_path) if not row.get("error")}
+        if config.get("resume") and prediction_path.exists()
+        else {}
+    )
     if not config.get("resume"):
         if prediction_path.exists():
             prediction_path.unlink()
         if error_path.exists():
             error_path.unlink()
     resources = RetrievalResources(cache=JsonCache(output_dir / "cache" / "retrieval"))
-    if config.get("retrieval_mode") != "mock" and any(method in methods for method in ["dkm_rag", "qtt_rag"]):
+    coral_retrieval_source = str(config.get("coral_retrieval_source") or "cards")
+    needs_multilingual = (
+        any(method in methods for method in ["dkm_rag", "qtt_rag", "multirag", "drag_icl"])
+        or (
+            "coral_wikipag" in methods
+            and (
+                bool(config.get("coral_drag_fallback_on_card_gate"))
+                or coral_retrieval_source == "wikipag"
+            )
+        )
+    )
+    if config.get("retrieval_mode") != "mock" and needs_multilingual:
+        retriever_languages = list(
+            config.get("multilingual_retrieval_languages")
+            or config.get("languages")
+            or ["bn", "hi", "sw", "te", "ne"]
+        )
         resources.multilingual = MultilingualFaissRetriever(
             root=Path(config.get("multilingual_root") or "/tmp/ca_multilingual_wikipedia_qwen3_4b/full_20231101"),
-            languages=list(config.get("languages") or ["bn", "hi", "sw", "te", "ne"]),
+            languages=retriever_languages,
+            extra_shards=config.get("multilingual_extra_shards"),
             model_dir=Path(config.get("embedding_model_dir") or "data/external/models/Qwen3-Embedding-4B"),
             device=str(config.get("embedding_device") or "cuda"),
             cache=resources.cache,
             ef_search=int(config.get("ef_search") or 128),
+            search_workers=(
+                int(config["multilingual_search_workers"])
+                if config.get("multilingual_search_workers") is not None
+                else len(retriever_languages)
+            ),
         )
+    if any(method in methods for method in ["coral_wikipag"]):
+        if config.get("retrieval_mode") == "mock":
+            resources.coral_bank = MockCoralUsageBank()
+        elif coral_retrieval_source == "wikipag":
+            if resources.multilingual is None:
+                raise RuntimeError("CORAL-Wikipag raw retrieval requires multilingual retriever")
+            resources.coral_bank = WikipagCoralPassageBank(
+                retriever=resources.multilingual,
+                cache=resources.cache,
+            )
+        else:
+            resources.coral_bank = CoralUsageBank(
+                bank_dir=Path(config.get("coral_bank_dir") or DEFAULT_CORAL_BANK_DIR),
+                model_dir=Path(config.get("embedding_model_dir") or "data/external/models/Qwen3-Embedding-4B"),
+                device=str(config.get("embedding_device") or "cuda"),
+                cache=resources.cache,
+            )
     if config.get("live_model") and config.get("local_vllm"):
         model: MockModel | LiveModel | LocalVLLMModel = LocalVLLMModel(
             model_dir=Path(config.get("local_model_dir") or "/tmp/qwen_models/Qwen3-8B"),
@@ -1097,6 +2024,7 @@ async def async_main(args: argparse.Namespace) -> int:
             batch_max_tokens=int(config.get("batch_max_tokens") or 4096),
             local_batch_size=int(config.get("local_batch_size") or 1),
             local_batch_timeout_ms=int(config.get("local_batch_timeout_ms") or 0),
+            cache_dir=output_dir / "cache" / "local_vllm",
         )
     elif config.get("live_model"):
         model = LiveModel(output_dir=output_dir, concurrency=max_concurrency)

@@ -24,8 +24,10 @@ def build_chat_payload(
 ) -> dict[str, Any]:
     """Build the smoke-test chat payload.
 
-    GPT-5-family models on OpenAI-compatible endpoints require
-    `max_completion_tokens`; sending the older `max_tokens` field can return 400.
+    GPT-5-family models on the Compass-compatible endpoint require
+    `max_completion_tokens`; sending the older `max_tokens` field returns 400.
+    This helper is deliberately separate from the Qwen-oriented project client
+    so canary runs use the configured `gpt-5.5` model correctly.
     """
 
     payload: dict[str, Any] = {
@@ -63,7 +65,9 @@ class SmokeChatResult:
 class SmokeModelClient:
     """OpenAI-compatible chat client scoped to smoke_001.
 
-    This client keeps the construction transport small, cached, and auditable.
+    The project-level chat client is Qwen-oriented and sends `max_tokens`.
+    GPT-5.5 on the configured Compass endpoint requires `max_completion_tokens`,
+    so this client keeps the smoke canary transport separate and auditable.
     """
 
     def __init__(

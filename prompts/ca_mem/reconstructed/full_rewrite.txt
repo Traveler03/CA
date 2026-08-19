@@ -1,0 +1,5 @@
+This prompt is a transparent reconstruction.
+It is not fully specified in the current paper PDF.
+
+Return a complete sanitized memory node by rewriting a selected existing node with one candidate.
+Report any concept, description, trigger, rule, or pitfall drift in metadata.

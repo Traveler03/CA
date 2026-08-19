@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 from src.utils.secrets import mask_secret, host_from_url
 
 
-DEFAULT_CHAT_MODEL = "gpt-5.4"
+DEFAULT_CHAT_MODEL = "qwen3.5-9b"
 DEFAULT_EMBEDDING_MODEL = "compass-embedding-v4"
 
 
@@ -243,7 +243,7 @@ def resolve_provider(
         if chat_model_override
         else "environment"
         if merged_env.get("CHAT_MODEL") or merged_env.get("QWEN_CHAT_MODEL")
-        else f"default:{DEFAULT_CHAT_MODEL}"
+        else "default:qwen3.5-9b"
     )
     embedding_model = (
         embedding_model_override

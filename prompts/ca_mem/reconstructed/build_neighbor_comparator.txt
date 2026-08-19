@@ -1,0 +1,5 @@
+This prompt is a transparent reconstruction.
+It is not fully specified in the current paper PDF.
+
+Return strict JSON deciding CREATE, NO_OP, MINIMAL_UPDATE, or REJECT for a sanitized candidate and same-subject memory neighbors.
+Use embeddings only as recall evidence. Do not merge by similarity threshold.

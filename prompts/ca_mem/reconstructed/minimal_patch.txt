@@ -1,0 +1,5 @@
+This prompt is a transparent reconstruction.
+It is not fully specified in the current paper PDF.
+
+Return a field-level patch only. Keep subject and concept. Prefer KEEP for description.
+Only add missing reusable triggers, rules, or negative boundaries; do not rewrite the full node.

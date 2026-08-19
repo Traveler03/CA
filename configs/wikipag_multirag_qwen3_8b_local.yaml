@@ -1,0 +1,56 @@
+output_dir: runs/smoke_001/wikipag_multirag_qwen3_8b_local
+
+# Evaluation rows. Override input_jsonl / max_rows / allow_full_run at launch
+# when running a full completion job.
+methods: [multirag]
+global_mmlu_dir: data/processed/global_mmlu
+languages: [bn, hi, ne, sw, te]
+max_rows: 100
+seed: 42
+resume: true
+allow_full_run: false
+
+# User-specified MultiRAG flow:
+# original language question+options -> Qwen3-Embedding-4B query vector
+# -> parallel search over Wikipag language indexes -> merge candidates
+# -> global score rerank -> Top-5 -> Qwen3-8B answer.
+retrieval_mode: faithful
+# Current workspace path for the built low-resource Wikipag FAISS shards.
+# Add/build 20231101.en under this root before using the default six-language
+# retrieval pool below.
+multilingual_root: data/external/wikipedia-multilingual-20231101-qwen3-embedding-4b/full_20231101
+multilingual_corpus_scope: all
+multilingual_retrieval_languages: [en, bn, sw, te, ne, hi]
+multilingual_extra_shards:
+  en:
+    index_path: data/external/wikipedia-en-2026-07-01-faiss/ivfpq.faiss
+    ids_path: data/external/wikipedia-en-2026-07-01-faiss/ids.txt
+    db_path: data/external/wikipedia-en-2026-07-01-faiss/offsets.sqlite
+    passages_dir: data/external/wikipedia-en-2026-07-01-passages
+    nprobe: 256
+multilingual_search_workers: 6
+embedding_model_dir: data/external/models/Qwen3-Embedding-4B
+embedding_device: cuda
+ef_search: 128
+top_k: 50
+candidate_top_k: 50
+multirag_candidate_top_k: 50
+multilingual_per_language_top_k: 50
+final_top_k: 5
+generation_top_k: 5
+reranker: score
+max_context_chars_per_doc: 1200
+
+# Qwen3-8B local-vLLM answer generator.
+live_model: true
+local_vllm: true
+local_model_dir: data/external/models/Qwen3-8B
+local_model_name: Qwen3-8B
+local_max_model_len: 8192
+local_gpu_memory_utilization: 0.70
+local_batch_size: 1
+local_batch_timeout_ms: 0
+answer_max_tokens: 512
+batch_max_tokens: 4096
+max_concurrent_model_requests: 4
+max_model_calls: 800

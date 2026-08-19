@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import shutil
 import sys
 from collections import Counter
 from datetime import datetime, timezone
@@ -13,8 +14,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from scripts.run_subject_concept_smoke import embed_texts_with_wikipag_service, run_pipeline
-from src.ca_mem.embedding import HashingTextEmbedder
+from scripts.run_subject_concept_smoke import run_pipeline
+from scripts.export_concept_card_runtime_bank import write_runtime_bank
 from src.smoke_test.io import read_jsonl, write_jsonl
 
 
@@ -32,25 +33,17 @@ DEFAULT_SUBJECTS = [
 ]
 
 COMBINED_JSONL_FILES = [
-    "subject_profile.jsonl",
-    "concept_queries.jsonl",
-    "concept_passages.jsonl",
-    "candidate_concepts.jsonl",
     "concept_registry.jsonl",
-    "concept_evidence.jsonl",
-    "merge_redirects.jsonl",
-    "evidence_packs.jsonl",
-    "runtime_cards.raw.jsonl",
-    "runtime_card_claims.jsonl",
-    "runtime_card_quality.jsonl",
-    "runtime_cards.jsonl",
-    "runtime_card_index.jsonl",
-    "build_events.jsonl",
+    "concept_relations.jsonl",
+    "usage_cards.jsonl",
+    "usage_card_claims.jsonl",
     "rejected_items.jsonl",
+    "build_events.jsonl",
+    "usage_index.jsonl",
 ]
 
 
-def load_subjects_from_subject_source(path: Path) -> list[str]:
+def load_subjects_from_global_mmlu(path: Path) -> list[str]:
     seen: set[str] = set()
     subjects: list[str] = []
     for row in read_jsonl(path):
@@ -65,10 +58,10 @@ def select_subjects(args: argparse.Namespace) -> list[str]:
     if args.subjects:
         subjects = args.subjects
     elif args.preset == "bank-s":
-        available = set(load_subjects_from_subject_source(Path(args.subject_source_jsonl)))
+        available = set(load_subjects_from_global_mmlu(Path(args.global_mmlu_en)))
         subjects = [subject for subject in DEFAULT_SUBJECTS if subject in available]
     else:
-        subjects = load_subjects_from_subject_source(Path(args.subject_source_jsonl))
+        subjects = load_subjects_from_global_mmlu(Path(args.global_mmlu_en))
     if args.max_subjects:
         subjects = subjects[: args.max_subjects]
     return subjects
@@ -78,19 +71,25 @@ def build_subject_args(args: argparse.Namespace, subject: str, subject_dir: Path
     return argparse.Namespace(
         subject=subject,
         category=None,
-        subject_source_jsonl=args.subject_source_jsonl,
+        global_mmlu_en=args.global_mmlu_en,
         output_dir=str(subject_dir),
         target_active_concepts=args.target_active_concepts,
-        max_topic_anchors=args.max_topic_anchors,
-        max_concept_queries=args.max_concept_queries,
+        max_articles=args.max_articles,
         max_passages=args.max_passages,
+        max_seed_queries=args.max_seed_queries,
         top_k_per_query=args.top_k_per_query,
         max_extraction_passages=args.max_extraction_passages,
         max_grounding_candidates=args.max_grounding_candidates,
         grounding_top_k=args.grounding_top_k,
-        evidence_top_k=args.evidence_top_k,
-        max_evidence_items_per_slot=args.max_evidence_items_per_slot,
-        max_card_concepts=args.max_card_concepts,
+        skip_llm_pair_judge=args.skip_llm_pair_judge,
+        max_pair_judge_pairs=args.max_pair_judge_pairs,
+        max_usage_concepts=args.max_usage_concepts,
+        max_usage_jobs=args.max_usage_jobs,
+        usage_retrieval_top_k=args.usage_retrieval_top_k,
+        final_materials_per_usage_job=args.final_materials_per_usage_job,
+        index_top_k=args.index_top_k,
+        skip_faiss_usage_index=args.skip_faiss_usage_index,
+        embedding_timeout_s=args.embedding_timeout_s,
         bank_version=args.bank_version,
         wikipag_service_url=args.wikipag_service_url,
         retrieval_timeout_s=args.retrieval_timeout_s,
@@ -99,63 +98,21 @@ def build_subject_args(args: argparse.Namespace, subject: str, subject_dir: Path
         concurrency=args.concurrency,
         max_retries=args.max_retries,
         model_timeout_s=args.model_timeout_s,
-        skip_llm_profile=args.skip_llm_profile,
-        skip_llm_verifier=args.skip_llm_verifier,
-        min_card_quality_score=args.min_card_quality_score,
-        card_index_backend=args.card_index_backend,
-        embedding_timeout_s=args.embedding_timeout_s,
     )
 
 
-def rebuild_combined_runtime_card_index(
-    bank_dir: Path,
-    *,
-    backend: str,
-    service_url: str,
-    timeout_s: float,
-) -> dict[str, Any]:
-    index_path = bank_dir / "runtime_card_index.jsonl"
-    rows = list(read_jsonl(index_path)) if index_path.exists() else []
-    texts = [str(row.get("index_text") or "") for row in rows]
-    if backend == "wikipag":
-        matrix, dimension = embed_texts_with_wikipag_service(texts, service_url=service_url, timeout_s=timeout_s)
-        embedding_backend = "wikipag_service"
-        embedding_model = "Qwen3-Embedding-4B"
-    else:
-        embedder = HashingTextEmbedder()
-        matrix = embedder.embed(texts)
-        dimension = int(matrix.shape[1]) if matrix.ndim == 2 else embedder.dim
-        embedding_backend = "hash"
-        embedding_model = embedder.model_name
-    import numpy as np
-
-    np.save(bank_dir / "runtime_card_index.npy", matrix)
-    meta = {
-        "index_type": "numpy_dense_matrix",
-        "metric": "cosine_on_normalized_embeddings",
-        "embedding_backend": embedding_backend,
-        "embedding_model": embedding_model,
-        "embedding_service_url": service_url if backend == "wikipag" else None,
-        "dimension": dimension,
-        "count": len(rows),
-        "matrix_path": str(bank_dir / "runtime_card_index.npy"),
-        "ids_path": str(index_path),
-    }
-    (bank_dir / "runtime_card_index_meta.json").write_text(
-        json.dumps(meta, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
-    return meta
+def copy_usage_index_shard(subject_dir: Path, bank_dir: Path, subject: str) -> None:
+    src_dir = subject_dir / "usage_indexes" / subject
+    if not src_dir.exists():
+        return
+    dst_dir = bank_dir / "usage_indexes" / subject
+    dst_dir.mkdir(parents=True, exist_ok=True)
+    for path in src_dir.iterdir():
+        if path.is_file():
+            shutil.copy2(path, dst_dir / path.name)
 
 
-def combine_outputs(
-    bank_dir: Path,
-    subject_dirs: list[tuple[str, Path]],
-    *,
-    card_index_backend: str,
-    service_url: str,
-    embedding_timeout_s: float,
-) -> tuple[dict[str, Any], dict[str, Any]]:
+def combine_outputs(bank_dir: Path, subject_dirs: list[tuple[str, Path]]) -> dict[str, Any]:
     combined_counts: dict[str, int] = {}
     for file_name in COMBINED_JSONL_FILES:
         rows: list[dict[str, Any]] = []
@@ -182,13 +139,10 @@ def combine_outputs(
     except Exception as exc:
         (bank_dir / "evidence_sections.error.txt").write_text(f"{type(exc).__name__}: {exc}\n", encoding="utf-8")
 
-    index_meta = rebuild_combined_runtime_card_index(
-        bank_dir,
-        backend=card_index_backend,
-        service_url=service_url,
-        timeout_s=embedding_timeout_s,
-    )
-    return combined_counts, index_meta
+    for subject, subject_dir in subject_dirs:
+        copy_usage_index_shard(subject_dir, bank_dir, subject)
+
+    return combined_counts
 
 
 def build_bank_manifest(
@@ -197,7 +151,7 @@ def build_bank_manifest(
     subjects: list[str],
     subject_summaries: list[dict[str, Any]],
     combined_counts: dict[str, int],
-    runtime_index_meta: dict[str, Any],
+    runtime_bank: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     totals = Counter()
     for summary in subject_summaries:
@@ -205,11 +159,9 @@ def build_bank_manifest(
             "active_concept_count",
             "concept_count",
             "active_card_count",
-            "runtime_card_count",
-            "runtime_card_claim_count",
-            "runtime_card_index_count",
-            "evidence_pack_count",
-            "avg_card_quality_score",
+            "usage_claim_count",
+            "usage_index_count",
+            "usage_faiss_index_count",
             "evidence_section_count",
             "rejected_item_count",
             "model_network_calls",
@@ -224,29 +176,20 @@ def build_bank_manifest(
         "concept_count": totals["concept_count"],
         "active_concept_count": totals["active_concept_count"],
         "active_card_count": totals["active_card_count"],
-        "runtime_card_count": combined_counts.get("runtime_cards.jsonl", 0),
-        "runtime_card_claim_count": combined_counts.get("runtime_card_claims.jsonl", 0),
-        "runtime_card_quality_count": combined_counts.get("runtime_card_quality.jsonl", 0),
-        "runtime_card_index_count": combined_counts.get("runtime_card_index.jsonl", 0),
-        "evidence_pack_count": combined_counts.get("evidence_packs.jsonl", 0),
-        "avg_card_quality_score": (
-            sum(float(summary.get("avg_card_quality_score") or 0.0) for summary in subject_summaries)
-            / len(subject_summaries)
-            if subject_summaries
-            else 0.0
-        ),
-        "min_card_quality_score": args.min_card_quality_score,
+        "usage_claim_count": totals["usage_claim_count"],
+        "usage_index_count": totals["usage_index_count"],
+        "usage_faiss_index_count": totals["usage_faiss_index_count"],
         "evidence_section_count": totals["evidence_section_count"],
         "rejected_item_count": totals["rejected_item_count"],
         "model_network_calls": totals["model_network_calls"],
         "construction_model": args.model,
-        "pipeline_version": "wiki_compact_card_v1",
-        "embedding_model": runtime_index_meta.get("embedding_model"),
-        "runtime_card_index": runtime_index_meta,
+        "embedding_model": "Qwen3-Embedding-4B for local Wikipag retrieval",
+        "top_k": args.index_top_k,
+        "similarity_gate": False,
         "construction_cutoff": datetime.now(timezone.utc).isoformat(),
-        "source_corpus_only": True,
-        "one_card_per_subject_concept": True,
+        "benchmark_content_accessed": False,
         "combined_counts": combined_counts,
+        "runtime_bank": runtime_bank,
         "shard_root": "subjects",
     }
 
@@ -284,19 +227,23 @@ async def run_batch(args: argparse.Namespace) -> dict[str, Any]:
             ],
         )
 
-    combined_counts, runtime_index_meta = combine_outputs(
-        bank_dir,
-        subject_dirs,
-        card_index_backend=args.card_index_backend,
-        service_url=args.wikipag_service_url,
-        embedding_timeout_s=args.embedding_timeout_s,
-    )
+    combined_counts = combine_outputs(bank_dir, subject_dirs)
+    runtime_bank = None
+    if args.write_runtime_bank:
+        runtime_bank = write_runtime_bank(
+            input_dir=bank_dir,
+            build_embedding_index=bool(args.build_runtime_embedding_index),
+            embedding_model_dir=Path(args.embedding_model_dir),
+            embedding_device=args.embedding_device,
+            embedding_truncate_dim=int(args.embedding_truncate_dim),
+            embedding_batch_size=int(args.embedding_batch_size),
+        )
     manifest = build_bank_manifest(
         args,
         subjects=subjects,
         subject_summaries=subject_summaries,
         combined_counts=combined_counts,
-        runtime_index_meta=runtime_index_meta,
+        runtime_bank=runtime_bank,
     )
     (bank_dir / "bank_manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
@@ -311,12 +258,12 @@ async def run_batch(args: argparse.Namespace) -> dict[str, Any]:
                 "active_concept_count": manifest["active_concept_count"],
                 "concept_count": manifest["concept_count"],
                 "active_card_count": manifest["active_card_count"],
-                "runtime_card_count": manifest["runtime_card_count"],
-                "runtime_card_claim_count": manifest["runtime_card_claim_count"],
-                "runtime_card_quality_count": manifest["runtime_card_quality_count"],
-                "runtime_card_index_count": manifest["runtime_card_index_count"],
+                "usage_claim_count": manifest["usage_claim_count"],
+                "usage_index_count": manifest["usage_index_count"],
+                "usage_faiss_index_count": manifest["usage_faiss_index_count"],
                 "model_network_calls": manifest["model_network_calls"],
-                "source_corpus_only": True,
+                "benchmark_content_accessed": False,
+                "runtime_bank": runtime_bank,
             },
             ensure_ascii=False,
             indent=2,
@@ -333,24 +280,36 @@ async def run_batch(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Run a sequential subject queue for Wiki compact-card construction.")
-    parser.add_argument("--output-dir", default="runs/smoke_001/wiki_compact_card_batch_smoke")
-    parser.add_argument("--subject-source-jsonl", default="data/subject_source/en_subjects.jsonl")
+    parser = argparse.ArgumentParser(description="Run a sequential subject queue for Usage Bank construction.")
+    parser.add_argument("--output-dir", default="runs/smoke_001/usage_bank_batch_smoke_gpt54")
+    parser.add_argument("--global-mmlu-en", default="data/processed/global_mmlu/en.jsonl")
     parser.add_argument("--preset", choices=["bank-s", "all"], default="bank-s")
     parser.add_argument("--subjects", nargs="+", default=None)
     parser.add_argument("--max-subjects", type=int, default=0)
     parser.add_argument("--target-active-concepts", type=int, default=20)
-    parser.add_argument("--max-topic-anchors", type=int, default=12)
-    parser.add_argument("--max-concept-queries", type=int, default=24)
-    parser.add_argument("--max-passages", type=int, default=32)
+    parser.add_argument("--max-articles", type=int, default=30)
+    parser.add_argument("--max-passages", type=int, default=24)
+    parser.add_argument("--max-seed-queries", type=int, default=8)
     parser.add_argument("--top-k-per-query", type=int, default=8)
-    parser.add_argument("--max-extraction-passages", type=int, default=10)
-    parser.add_argument("--max-grounding-candidates", type=int, default=40)
-    parser.add_argument("--grounding-top-k", type=int, default=4)
-    parser.add_argument("--evidence-top-k", type=int, default=6)
-    parser.add_argument("--max-evidence-items-per-slot", type=int, default=2)
-    parser.add_argument("--max-card-concepts", type=int, default=10)
-    parser.add_argument("--bank-version", default="wiki-compact-card-batch-v0.1")
+    parser.add_argument("--max-extraction-passages", type=int, default=8)
+    parser.add_argument("--max-grounding-candidates", type=int, default=30)
+    parser.add_argument("--grounding-top-k", type=int, default=3)
+    parser.add_argument("--skip-llm-pair-judge", action="store_true")
+    parser.add_argument("--max-pair-judge-pairs", type=int, default=40)
+    parser.add_argument("--max-usage-concepts", type=int, default=5)
+    parser.add_argument("--max-usage-jobs", type=int, default=10)
+    parser.add_argument("--usage-retrieval-top-k", type=int, default=8)
+    parser.add_argument("--final-materials-per-usage-job", type=int, default=4)
+    parser.add_argument("--index-top-k", type=int, default=3)
+    parser.add_argument("--skip-faiss-usage-index", action="store_true")
+    parser.add_argument("--embedding-timeout-s", type=float, default=120.0)
+    parser.add_argument("--write-runtime-bank", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--build-runtime-embedding-index", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--embedding-model-dir", type=Path, default=Path("data/external/models/Qwen3-Embedding-4B"))
+    parser.add_argument("--embedding-device", default="cuda")
+    parser.add_argument("--embedding-truncate-dim", type=int, default=1024)
+    parser.add_argument("--embedding-batch-size", type=int, default=64)
+    parser.add_argument("--bank-version", default="bank-smoke-gpt54-v0.1")
     parser.add_argument("--wikipag-service-url", default="http://127.0.0.1:8897")
     parser.add_argument("--retrieval-timeout-s", type=float, default=120.0)
     parser.add_argument("--model", default="gpt-5.4")
@@ -358,11 +317,6 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--concurrency", type=int, default=4)
     parser.add_argument("--max-retries", type=int, default=2)
     parser.add_argument("--model-timeout-s", type=float, default=120.0)
-    parser.add_argument("--skip-llm-profile", action="store_true")
-    parser.add_argument("--skip-llm-verifier", action="store_true")
-    parser.add_argument("--min-card-quality-score", type=float, default=0.72)
-    parser.add_argument("--card-index-backend", choices=["wikipag", "hash"], default="wikipag")
-    parser.add_argument("--embedding-timeout-s", type=float, default=120.0)
     parser.add_argument("--resume", action="store_true")
     args = parser.parse_args(argv)
     manifest = asyncio.run(run_batch(args))

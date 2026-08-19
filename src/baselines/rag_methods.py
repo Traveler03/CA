@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from typing import Any, Literal
 
 
-RagMethod = Literal["trag", "dkm_rag", "qtt_rag"]
+RagMethod = Literal["zero_shot", "trag", "dkm_rag", "qtt_rag", "multirag", "drag_icl", "coral_wikipag"]
 
 
 LANGUAGE_NAMES = {
@@ -134,6 +134,12 @@ def parse_json_object(text: str) -> dict[str, Any]:
             continue
         if isinstance(value, dict):
             return value
+    answer_match = re.search(r'"answer"\s*:\s*"([A-J])"', text, flags=re.IGNORECASE)
+    if answer_match:
+        return {"answer": answer_match.group(1).upper(), "_parse_fallback": "answer_field_regex"}
+    section_match = re.search(r"(?:#\s*Answer|Answer)\s*[:\n\r\s-]*([A-J])\b", text, flags=re.IGNORECASE)
+    if section_match:
+        return {"answer": section_match.group(1).upper(), "_parse_fallback": "answer_section_regex"}
     raise ValueError(f"no JSON object found: {text[:200]}")
 
 
@@ -336,6 +342,19 @@ def solver_messages(
     labels = ", ".join(option_labels(row.get("options") or {}))
     method_note = {
         "trag": "The query was translated to English for retrieval; documents are retrieved English evidence.",
+        "multirag": (
+            "The original multilingual query was used for retrieval. Documents are original retrieved evidence; "
+            "do not translate or rewrite them. Some retrieved documents may be irrelevant; ignore irrelevant evidence "
+            "and do not let it override a clear answer from the question and options."
+        ),
+        "drag_icl": (
+            "Use the D-RAG-ICL four-stage evidence procedure. Documents are original retrieved evidence; "
+            "do not translate or rewrite them before reasoning."
+        ),
+        "coral_wikipag": (
+            "Use CORAL-Wikipag verified usage cards and concept triples when available. "
+            "If no verified cards are provided, answer from the question and options."
+        ),
         "dkm_rag": "Documents contain translated passages plus refined passages. Use both; the refined passage is not an answer key.",
         "qtt_rag": (
             "Use original query-language documents first when present. For translated documents, consider all three "
@@ -367,6 +386,93 @@ def solver_messages(
                 f"{question_text(row)}\n\n"
                 f"Choose the single best answer from {labels}. "
                 'Return only JSON: {"answer":"A"}'
+            ),
+        },
+    ]
+
+
+def drag_icl_solver_messages(
+    row: dict[str, Any],
+    *,
+    retrieval_query: str,
+    contexts: list[str],
+    retrieval_scope: str | None = None,
+) -> list[dict[str, str]]:
+    language = supported_language(row)
+    language_name = LANGUAGE_NAMES[language]
+    context_block = "\n\n".join(f"Document {idx + 1}:\n{text}" for idx, text in enumerate(contexts)) or "No retrieved context."
+    labels = ", ".join(option_labels(row.get("options") or {}))
+    return [
+        {
+            "role": "system",
+            "content": (
+                "You run D-RAG-ICL adapted for multilingual multiple-choice QA. "
+                "Use retrieved evidence when it is relevant; ignore irrelevant evidence. "
+                "Complete the four requested stages and end with a single answer label."
+            ),
+        },
+        {
+            "role": "user",
+            "content": (
+                f"Target language: {language_name} ({language})\n"
+                f"Method: drag_icl\n"
+                f"Retrieval scope: {retrieval_scope or 'multilingual'}\n"
+                f"Retrieval query:\n{retrieval_query}\n\n"
+                f"# Reference Evidence:\n{context_block}\n\n"
+                f"# Question:\n{question_text(row)}\n\n"
+                "Complete all four stages in one response:\n"
+                "#Extraction\n"
+                "In English, extract at most 3 short evidence points that could help answer the question.\n\n"
+                "#Explaination\n"
+                "In English, write at most 5 short document relevance notes. Cite Document numbers.\n\n"
+                "#Dialectic Argumentation\n"
+                "In English, compare evidence in at most 40 words. If evidence is weak or irrelevant, say so and use the question/options.\n\n"
+                "#Answer\n"
+                f"Choose the single best answer from {labels}. "
+                "Write the final line exactly as: Answer: A"
+            ),
+        },
+    ]
+
+
+def adaptive_evidence_gate_messages(
+    row: dict[str, Any],
+    *,
+    method: RagMethod,
+    retrieval_query: str,
+    contexts: list[str],
+    zero_shot_answer: str | None,
+    rag_answer: str | None,
+) -> list[dict[str, str]]:
+    language = supported_language(row)
+    language_name = LANGUAGE_NAMES[language]
+    context_block = "\n\n".join(f"Document {idx + 1}:\n{text}" for idx, text in enumerate(contexts)) or "No retrieved context."
+    labels = ", ".join(option_labels(row.get("options") or {}))
+    return [
+        {
+            "role": "system",
+            "content": (
+                "You are a conservative evidence gate for multilingual multiple-choice RAG. "
+                "Hidden reasoning is disabled. Return only valid JSON."
+            ),
+        },
+        {
+            "role": "user",
+            "content": (
+                f"Target language: {language_name} ({language})\n"
+                f"Method being gated: {method}\n"
+                f"Retrieval query:\n{retrieval_query}\n\n"
+                f"Retrieved evidence:\n{context_block}\n\n"
+                f"{question_text(row)}\n\n"
+                f"No-evidence answer: {zero_shot_answer or 'INVALID'}\n"
+                f"RAG answer: {rag_answer or 'INVALID'}\n\n"
+                "Choose between the no-evidence answer and the RAG answer only.\n"
+                "Use the RAG answer only if at least one retrieved document directly supports that answer "
+                "or directly eliminates the no-evidence answer. If the evidence is generic, off-topic, "
+                "too weak, incomplete, or conflicting, choose the no-evidence answer. "
+                f"The final answer must be one of {labels}. "
+                'Return exactly JSON: {"answer":"A","selected_source":"zero_shot|rag",'
+                '"evidence_status":"direct_support|weak_or_irrelevant|conflicting|invalid_candidate"}'
             ),
         },
     ]

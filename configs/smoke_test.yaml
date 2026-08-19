@@ -1,0 +1,59 @@
+run:
+  name: smoke_001
+  seed: 42
+  output_dir: runs/smoke_001
+  resume: true
+  dry_run: false
+
+dataset:
+  path: data/processed/global_mmlu/en.jsonl
+  language: en
+  total_projects: 100
+  projects_per_subject: 20
+  subjects:
+    - high_school_microeconomics
+    - high_school_physics
+    - professional_law
+    - clinical_knowledge
+    - high_school_world_history
+  exclude_time_sensitive: true
+  exclude_culturally_sensitive: true
+
+signature:
+  max_concepts_per_project: 2
+  max_usage_patterns_per_concept: 3
+  max_retrieval_queries: 3
+
+retrieval:
+  service_url: http://127.0.0.1:8897
+  top_k_per_query: 20
+  final_passages_per_job: 5
+  read_only: true
+  timeout_s: 120
+
+usage_card:
+  max_cards_per_usage_job: 2
+  require_evidence_span: true
+  require_all_critical_claims_supported: true
+
+model:
+  name: gpt-5.5
+  endpoint: chat/completions
+  reasoning_effort: low
+  max_completion_tokens: 2048
+  concurrency: 4
+  max_retries: 2
+  max_total_calls: 800
+  cache_enabled: true
+
+canary:
+  project_count: 20
+  stop_on_error_rate: 0.20
+
+replay:
+  enabled: true
+  compare_without_card: true
+
+write:
+  production_registry: false
+  production_vector_index: false

@@ -1,0 +1,19 @@
+{
+  "bank_dir": "artifacts/ca_mem/full_oracle_plus_wikipag_clean_57subjects_target1000_gpt54_one_card_v1/combined_oracle_plus_clean_57subjects_target1000_gpt54/banks/concept_card_qwen3_1024",
+  "bank_jsonl": "artifacts/ca_mem/full_oracle_plus_wikipag_clean_57subjects_target1000_gpt54_one_card_v1/combined_oracle_plus_clean_57subjects_target1000_gpt54/banks/concept_card_qwen3_1024/bank.jsonl",
+  "bank_name": "concept_card_qwen3_1024",
+  "build_embedding_index": true,
+  "card_count": 60653,
+  "dedupe_key": "subject+normalized_concept",
+  "deduped_card_count": 60653,
+  "embedding_index": "artifacts/ca_mem/full_oracle_plus_wikipag_clean_57subjects_target1000_gpt54_one_card_v1/combined_oracle_plus_clean_57subjects_target1000_gpt54/banks/concept_card_qwen3_1024/build_index.npy",
+  "embedding_shape": [
+    60653,
+    1024
+  ],
+  "raw_active_card_count": 61127,
+  "removed_duplicate_subject_concept_count": 474,
+  "schema": "concept_card_runtime_v1",
+  "source_bank_dir": "artifacts/ca_mem/full_oracle_plus_wikipag_clean_57subjects_target1000_gpt54_one_card_v1/combined_oracle_plus_clean_57subjects_target1000_gpt54",
+  "source_usage_cards": "artifacts/ca_mem/full_oracle_plus_wikipag_clean_57subjects_target1000_gpt54_one_card_v1/combined_oracle_plus_clean_57subjects_target1000_gpt54/usage_cards.jsonl"
+}

@@ -1,0 +1,61 @@
+{
+  "bank_dir": "artifacts/ca_mem/full_oracle_plus_wikipag_clean_57subjects_target1000_gpt54_one_card_v1/combined_oracle_plus_clean_57subjects_target1000_gpt54/banks/concept_card_qwen3_1024",
+  "by_dataset_language": {
+    "global_mmlu:bn": 4341,
+    "global_mmlu:en": 4341,
+    "global_mmlu:hi": 4341,
+    "global_mmlu:ne": 4341,
+    "global_mmlu:sw": 4341,
+    "global_mmlu:te": 4341,
+    "mmlu_prox:en": 5222
+  },
+  "components": [
+    {
+      "dataset": "global_mmlu",
+      "language": "en",
+      "path": "data/processed/global_mmlu/en.test.jsonl",
+      "rows": 4341
+    },
+    {
+      "dataset": "global_mmlu",
+      "language": "bn",
+      "path": "data/processed/global_mmlu/bn.test.jsonl",
+      "rows": 4341
+    },
+    {
+      "dataset": "global_mmlu",
+      "language": "hi",
+      "path": "data/processed/global_mmlu/hi.test.jsonl",
+      "rows": 4341
+    },
+    {
+      "dataset": "global_mmlu",
+      "language": "ne",
+      "path": "data/processed/global_mmlu/ne.test.jsonl",
+      "rows": 4341
+    },
+    {
+      "dataset": "global_mmlu",
+      "language": "sw",
+      "path": "data/processed/global_mmlu/sw.test.jsonl",
+      "rows": 4341
+    },
+    {
+      "dataset": "global_mmlu",
+      "language": "te",
+      "path": "data/processed/global_mmlu/te.test.jsonl",
+      "rows": 4341
+    },
+    {
+      "dataset": "mmlu_prox",
+      "language": "en",
+      "path": "data/processed/mmlu_prox/en.test.jsonl",
+      "rows": 5222
+    }
+  ],
+  "embedding_model": "data/external/models/Qwen3-Embedding-4B",
+  "input_jsonl": "artifacts/ca_mem/full_global_mmlu_mmlu_prox_ca_eval/combined_global_mmlu_mmlu_prox_all_test_input.jsonl",
+  "model": "data/external/models/Qwen3-8B",
+  "note": "Full CA evaluation input: all processed Global-MMLU test rows for en,bn,hi,ne,sw,te plus all processed MMLU-ProX en.test rows.",
+  "total_rows": 31268
+}

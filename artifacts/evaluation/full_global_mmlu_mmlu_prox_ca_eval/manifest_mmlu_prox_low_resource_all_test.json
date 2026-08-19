@@ -1,0 +1,22 @@
+{
+  "counts": {
+    "bn": 5222,
+    "hi": 5222,
+    "ne": 5222,
+    "sw": 5222,
+    "te": 5222
+  },
+  "created_at": "2026-08-19 14:12:47 CST",
+  "dataset": "mmlu_prox",
+  "languages": [
+    "bn",
+    "hi",
+    "ne",
+    "sw",
+    "te"
+  ],
+  "output": "artifacts/ca_mem/full_global_mmlu_mmlu_prox_ca_eval/combined_mmlu_prox_low_resource_all_test_input.jsonl",
+  "source_dir": "runs/smoke_001/full_tcrag_qwen3_8b_local_2gpu/inputs/mmlu_prox_processed",
+  "split": "test",
+  "total": 26110
+}

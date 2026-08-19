@@ -1,0 +1,4 @@
+This prompt is a transparent reconstruction.
+It is not fully specified in the current paper PDF.
+
+Transform a verified source trajectory into an answer-sanitized concept usage candidate with trigger invariants, decision rules, and negative error boundaries.

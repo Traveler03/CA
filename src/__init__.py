@@ -1,1 +1,1 @@
-"""Wikipag concept-usage bank construction package."""
+"""Low-resource Global-MMLU utilities."""
