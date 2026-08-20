@@ -1,0 +1,58 @@
+{
+  "accuracy": 0.5336400711073931,
+  "avg_final_card_count": 3.922430199728119,
+  "by_dataset": [
+    {
+      "accuracy": 0.622805805114029,
+      "correct": 13518,
+      "dataset": "global_mmlu",
+      "n": 21705
+    },
+    {
+      "accuracy": 0.45951742627345843,
+      "correct": 11998,
+      "dataset": "mmlu_prox",
+      "n": 26110
+    }
+  ],
+  "by_language": [
+    {
+      "accuracy": 0.5624803931820559,
+      "correct": 5379,
+      "language": "bn",
+      "n": 9563
+    },
+    {
+      "accuracy": 0.5709505385339328,
+      "correct": 5460,
+      "language": "hi",
+      "n": 9563
+    },
+    {
+      "accuracy": 0.5523371326989438,
+      "correct": 5282,
+      "language": "ne",
+      "n": 9563
+    },
+    {
+      "accuracy": 0.4304088675101955,
+      "correct": 4116,
+      "language": "sw",
+      "n": 9563
+    },
+    {
+      "accuracy": 0.5520234236118373,
+      "correct": 5279,
+      "language": "te",
+      "n": 9563
+    }
+  ],
+  "correct": 25516,
+  "errors": 0,
+  "model_calls_observed": null,
+  "n": 47815,
+  "parse_rate": 0.9999581721217191,
+  "query_rewrite_fallbacks": 257,
+  "rerank_check_fallbacks": 292,
+  "valid": 47813
+}

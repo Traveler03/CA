@@ -1,0 +1,28 @@
+{
+  "counts": {
+    "global_mmlu:bn": 4341,
+    "global_mmlu:hi": 4341,
+    "global_mmlu:ne": 4341,
+    "global_mmlu:sw": 4341,
+    "global_mmlu:te": 4341,
+    "mmlu_prox:bn": 5222,
+    "mmlu_prox:hi": 5222,
+    "mmlu_prox:ne": 5222,
+    "mmlu_prox:sw": 5222,
+    "mmlu_prox:te": 5222
+  },
+  "languages": [
+    "bn",
+    "hi",
+    "ne",
+    "sw",
+    "te"
+  ],
+  "note": "Full CA ablation input restricted to low-resource languages for Global-MMLU and MMLU-ProX.",
+  "output": "artifacts/ca_mem/full_ca_ablation_qwen3_8b/inputs/global_mmlu_mmlu_prox_low_resource_all_test_input.jsonl",
+  "sources": [
+    "artifacts/ca_mem/full_global_mmlu_mmlu_prox_ca_eval/combined_global_mmlu_mmlu_prox_all_test_input.jsonl",
+    "artifacts/ca_mem/full_global_mmlu_mmlu_prox_ca_eval/combined_mmlu_prox_low_resource_all_test_input.jsonl"
+  ],
+  "total_rows": 47815
+}

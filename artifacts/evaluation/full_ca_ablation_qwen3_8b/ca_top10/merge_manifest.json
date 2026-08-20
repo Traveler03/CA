@@ -1,0 +1,13 @@
+{
+  "accuracy": 0.5336400711073931,
+  "duplicate_rows_skipped": 0,
+  "merged_rows": 47815,
+  "output": "artifacts/ca_mem/full_ca_ablation_qwen3_8b/ca_top10/predictions.jsonl",
+  "parse_rate": 0.9999581721217191,
+  "source_counts": {
+    "artifacts/ca_mem/full_ca_ablation_qwen3_8b/ca_top10/predictions.partial_before_shards.jsonl": 5408,
+    "artifacts/ca_mem/full_ca_ablation_qwen3_8b/ca_top10_shard0_after_5408/predictions.jsonl": 21204,
+    "artifacts/ca_mem/full_ca_ablation_qwen3_8b/ca_top10_shard1_after_5408/predictions.jsonl": 21203
+  },
+  "target_rows": 47815
+}

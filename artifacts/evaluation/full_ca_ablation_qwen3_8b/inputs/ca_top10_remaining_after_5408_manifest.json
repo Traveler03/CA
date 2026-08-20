@@ -1,0 +1,17 @@
+{
+  "completed_rows": 5408,
+  "full_input": "artifacts/ca_mem/full_ca_ablation_qwen3_8b/inputs/global_mmlu_mmlu_prox_low_resource_all_test_input.jsonl",
+  "partial_backup": "artifacts/ca_mem/full_ca_ablation_qwen3_8b/ca_top10/predictions.partial_before_shards.jsonl",
+  "partial_predictions": "artifacts/ca_mem/full_ca_ablation_qwen3_8b/ca_top10/predictions.jsonl",
+  "remaining_rows": 42407,
+  "shards": [
+    {
+      "path": "artifacts/ca_mem/full_ca_ablation_qwen3_8b/inputs/ca_top10_remaining_after_5408/shard0.jsonl",
+      "rows": 21204
+    },
+    {
+      "path": "artifacts/ca_mem/full_ca_ablation_qwen3_8b/inputs/ca_top10_remaining_after_5408/shard1.jsonl",
+      "rows": 21203
+    }
+  ]
+}

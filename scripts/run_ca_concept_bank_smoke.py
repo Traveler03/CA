@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import hashlib
 import json
 import time
 import sys
@@ -39,11 +40,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--local-gpu-memory-utilization", type=float, default=0.75)
     parser.add_argument("--local-batch-size", type=int, default=16)
     parser.add_argument("--local-batch-timeout-ms", type=int, default=10)
+    parser.add_argument("--cache-dir", type=Path)
     parser.add_argument("--max-rows", type=int, default=100)
     parser.add_argument("--max-concurrent-model-requests", type=int, default=4)
     parser.add_argument("--max-model-calls", type=int, default=800)
     parser.add_argument("--candidate-top-k", type=int, default=20)
     parser.add_argument("--top-k", type=int, default=5)
+    parser.add_argument(
+        "--retrieval-strategy",
+        choices=["embedding", "random_global", "random_same_subject"],
+        default="embedding",
+    )
+    parser.add_argument("--random-seed", type=int, default=42)
     parser.add_argument("--max-card-chars", type=int, default=1200)
     parser.add_argument("--rerank-card-chars", type=int, default=700)
     parser.add_argument("--answer-max-tokens", type=int, default=512)
@@ -57,16 +65,16 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def load_bank(bank_dir: Path) -> tuple[list[dict[str, Any]], np.ndarray]:
+def load_bank(bank_dir: Path, *, require_index: bool = True) -> tuple[list[dict[str, Any]], np.ndarray | None]:
     bank_path = bank_dir / "bank.jsonl"
     index_path = bank_dir / "build_index.npy"
     if not bank_path.exists():
         raise FileNotFoundError(bank_path)
-    if not index_path.exists():
+    if require_index and not index_path.exists():
         raise FileNotFoundError(index_path)
     cards = list(read_jsonl(bank_path))
-    index = np.load(index_path, mmap_mode="r")
-    if index.shape[0] != len(cards):
+    index = np.load(index_path, mmap_mode="r") if index_path.exists() else None
+    if index is not None and index.shape[0] != len(cards):
         raise ValueError(f"index/card count mismatch: {index.shape[0]} != {len(cards)}")
     return cards, index
 
@@ -249,13 +257,15 @@ def answer_messages(row: dict[str, Any], cards: list[dict[str, Any]], query_payl
 
 
 class ConceptBankRetriever:
-    def __init__(self, *, bank_dir: Path, model_dir: Path, device: str) -> None:
-        from sentence_transformers import SentenceTransformer
-
+    def __init__(self, *, bank_dir: Path, model_dir: Path, device: str, load_embedding_model: bool = True) -> None:
         self.bank_dir = bank_dir
-        self.cards, self.index = load_bank(bank_dir)
-        self.dim = int(self.index.shape[1])
-        self.model = SentenceTransformer(str(model_dir), device=device)
+        self.cards, self.index = load_bank(bank_dir, require_index=load_embedding_model)
+        self.dim = int(self.index.shape[1]) if self.index is not None else 0
+        self.model = None
+        if load_embedding_model:
+            from sentence_transformers import SentenceTransformer
+
+            self.model = SentenceTransformer(str(model_dir), device=device)
         self.by_subject: dict[str, np.ndarray] = defaultdict(list)  # type: ignore[assignment]
         subject_lists: dict[str, list[int]] = defaultdict(list)
         for idx, card in enumerate(self.cards):
@@ -263,6 +273,8 @@ class ConceptBankRetriever:
         self.by_subject = {subject: np.asarray(indices, dtype=np.int64) for subject, indices in subject_lists.items()}
 
     def encode(self, text: str) -> np.ndarray:
+        if self.model is None:
+            raise RuntimeError("embedding model is not loaded")
         kwargs = {"prompt_name": "query", "normalize_embeddings": True, "convert_to_numpy": True}
         try:
             vector = self.model.encode([text], truncate_dim=self.dim, **kwargs)
@@ -276,7 +288,57 @@ class ConceptBankRetriever:
             raise ValueError(f"query embedding shape {vector.shape} != (1, {self.dim})")
         return vector[0]
 
+    def _hit_rows(self, selected: list[tuple[int, float]]) -> list[dict[str, Any]]:
+        return [
+            {
+                "rank": rank,
+                "score": score,
+                "memory_id": self.cards[idx].get("memory_id"),
+                "subject": self.cards[idx].get("subject"),
+                "concept": self.cards[idx].get("concept"),
+                "card": self.cards[idx],
+            }
+            for rank, (idx, score) in enumerate(selected, start=1)
+        ]
+
+    def _random_rng(self, *, strategy: str, subject: str, random_seed: int, random_key: str) -> np.random.Generator:
+        payload = json.dumps(
+            {
+                "strategy": strategy,
+                "subject": subject,
+                "random_seed": int(random_seed),
+                "random_key": random_key,
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+        )
+        seed = int.from_bytes(hashlib.sha256(payload.encode("utf-8")).digest()[:8], "little", signed=False)
+        return np.random.default_rng(seed)
+
+    def retrieve_random(
+        self,
+        *,
+        subject: str,
+        top_k: int,
+        strategy: str,
+        random_seed: int,
+        random_key: str,
+    ) -> list[dict[str, Any]]:
+        if strategy == "random_same_subject" and subject in self.by_subject:
+            pool = self.by_subject[subject]
+        else:
+            pool = np.arange(len(self.cards), dtype=np.int64)
+        count = min(max(int(top_k), 0), len(pool))
+        if count <= 0:
+            return []
+        rng = self._random_rng(strategy=strategy, subject=subject, random_seed=random_seed, random_key=random_key)
+        chosen = rng.choice(pool, size=count, replace=False)
+        selected = [(int(idx), 0.0) for idx in chosen.tolist()]
+        return self._hit_rows(selected)
+
     def retrieve(self, *, query: str, subject: str, top_k: int, subject_filter: bool) -> list[dict[str, Any]]:
+        if self.index is None:
+            raise RuntimeError("embedding index is not loaded")
         vector = self.encode(query)
         if subject_filter and subject in self.by_subject:
             indices = self.by_subject[subject]
@@ -290,17 +352,7 @@ class ConceptBankRetriever:
             top = np.argpartition(-scores, kth=min(top_k, len(scores) - 1))[:top_k]
             ordered = top[np.argsort(-scores[top])]
             selected = [(int(i), float(scores[i])) for i in ordered]
-        return [
-            {
-                "rank": rank,
-                "score": score,
-                "memory_id": self.cards[idx].get("memory_id"),
-                "subject": self.cards[idx].get("subject"),
-                "concept": self.cards[idx].get("concept"),
-                "card": self.cards[idx],
-            }
-            for rank, (idx, score) in enumerate(selected, start=1)
-        ]
+        return self._hit_rows(selected)
 
 
 async def run_one(
@@ -318,6 +370,8 @@ async def run_one(
     rerank_max_tokens: int,
     rerank_check: bool,
     subject_filter: bool,
+    retrieval_strategy: str,
+    random_seed: int,
     semaphore: asyncio.Semaphore,
 ) -> dict[str, Any]:
     started = time.perf_counter()
@@ -343,12 +397,23 @@ async def run_one(
         if isinstance(target_concepts, list):
             concept_query = concept_query + " " + " ".join(str(item) for item in target_concepts[:5])
         retrieval_query = f"Subject: {row.get('subject') or ''}\nConcept query: {concept_query}"
-        candidate_hits = retriever.retrieve(
-            query=retrieval_query,
-            subject=str(row.get("subject") or ""),
-            top_k=max(top_k, candidate_top_k),
-            subject_filter=subject_filter,
-        )
+        candidate_count = max(top_k, candidate_top_k)
+        subject = str(row.get("subject") or "")
+        if retrieval_strategy == "embedding":
+            candidate_hits = retriever.retrieve(
+                query=retrieval_query,
+                subject=subject,
+                top_k=candidate_count,
+                subject_filter=subject_filter,
+            )
+        else:
+            candidate_hits = retriever.retrieve_random(
+                subject=subject,
+                top_k=candidate_count,
+                strategy=retrieval_strategy,
+                random_seed=random_seed,
+                random_key=key,
+            )
         rerank_payload: dict[str, Any] = {"selected": [], "_rerank_check_disabled": True}
         if rerank_check:
             try:
@@ -380,7 +445,11 @@ async def run_one(
     gold = str(row.get("answer") or "").strip().upper()
     return {
         "eval_key": key,
-        "method": "ca_concept_bank_query_rewrite_rerank_check" if rerank_check else "ca_concept_bank_query_rewrite",
+        "method": (
+            f"ca_concept_bank_{retrieval_strategy}_query_rewrite_rerank_check"
+            if rerank_check
+            else f"ca_concept_bank_{retrieval_strategy}_query_rewrite"
+        ),
         "dataset": row.get("_dataset") or row.get("dataset") or "global_mmlu",
         "language": row.get("language") or row.get("_language"),
         "subject": row.get("subject"),
@@ -392,6 +461,8 @@ async def run_one(
         "concept_query_payload": query_payload,
         "rerank_payload": rerank_payload,
         "retrieval_query": retrieval_query,
+        "retrieval_strategy": retrieval_strategy,
+        "random_seed": random_seed if retrieval_strategy != "embedding" else None,
         "candidate_cards": [
             {
                 "rank": hit["rank"],
@@ -496,8 +567,11 @@ async def amain() -> int:
         "max_model_calls": args.max_model_calls,
         "input_jsonl": str(args.input_jsonl),
         "bank_dir": str(args.bank_dir),
+        "cache_dir": str(args.cache_dir or args.output_dir / "cache" / "local_vllm"),
         "candidate_top_k": args.candidate_top_k,
         "top_k": args.top_k,
+        "retrieval_strategy": args.retrieval_strategy,
+        "random_seed": args.random_seed if args.retrieval_strategy != "embedding" else None,
         "rerank_check": rerank_check,
         "rerank_card_chars": args.rerank_card_chars,
         "subject_filter": not args.no_subject_filter,
@@ -517,14 +591,19 @@ async def amain() -> int:
                 path.unlink()
     existing = {str(row.get("eval_key")): row for row in read_jsonl(prediction_path)} if args.resume and prediction_path.exists() else {}
 
-    retriever = ConceptBankRetriever(bank_dir=args.bank_dir, model_dir=args.embedding_model_dir, device=args.embedding_device)
+    retriever = ConceptBankRetriever(
+        bank_dir=args.bank_dir,
+        model_dir=args.embedding_model_dir,
+        device=args.embedding_device,
+        load_embedding_model=args.retrieval_strategy == "embedding",
+    )
     model = LocalVLLMModel(
         model_dir=args.local_model_dir,
         max_model_len=args.local_max_model_len,
         gpu_memory_utilization=args.local_gpu_memory_utilization,
         local_batch_size=args.local_batch_size,
         local_batch_timeout_ms=args.local_batch_timeout_ms,
-        cache_dir=args.output_dir / "cache" / "local_vllm",
+        cache_dir=args.cache_dir or args.output_dir / "cache" / "local_vllm",
     )
     semaphore = asyncio.Semaphore(int(args.max_concurrent_model_requests))
     write_lock = asyncio.Lock()
@@ -564,6 +643,8 @@ async def amain() -> int:
                         rerank_max_tokens=int(args.rerank_max_tokens),
                         rerank_check=rerank_check,
                         subject_filter=not args.no_subject_filter,
+                        retrieval_strategy=str(args.retrieval_strategy),
+                        random_seed=int(args.random_seed),
                         semaphore=semaphore,
                     )
                     async with write_lock:
@@ -636,6 +717,8 @@ async def amain() -> int:
                     rerank_max_tokens=int(args.rerank_max_tokens),
                     rerank_check=rerank_check,
                     subject_filter=not args.no_subject_filter,
+                    retrieval_strategy=str(args.retrieval_strategy),
+                    random_seed=int(args.random_seed),
                     semaphore=semaphore,
                 )
                 with prediction_path.open("a", encoding="utf-8") as f:

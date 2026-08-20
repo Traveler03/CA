@@ -1,0 +1,1005 @@
+{
+  "low_resource_languages": [
+    "bn",
+    "hi",
+    "ne",
+    "sw",
+    "te"
+  ],
+  "target_n": 47815,
+  "variants": [
+    {
+      "label": "CA full",
+      "paths": [
+        "artifacts/ca_mem/full_global_mmlu_mmlu_prox_ca_eval/ca_eval_full_bank_qwen3_8b_all_test/predictions.jsonl",
+        "artifacts/ca_mem/full_global_mmlu_mmlu_prox_ca_eval/ca_eval_full_bank_qwen3_8b_mmlu_prox_low_resource_all_test/predictions.jsonl"
+      ],
+      "summary": {
+        "accuracy": 0.5348949074558194,
+        "accuracy_on_present": 0.5348949074558194,
+        "by_dataset": {
+          "global_mmlu": {
+            "accuracy": 0.625524072794287,
+            "accuracy_on_present": 0.625524072794287,
+            "correct": 13577,
+            "missing": 0,
+            "present_n": 21705,
+            "target_n": 21705,
+            "valid": 21704,
+            "valid_rate": 0.9999539276664363
+          },
+          "mmlu_prox": {
+            "accuracy": 0.4595557257755649,
+            "accuracy_on_present": 0.4595557257755649,
+            "correct": 11999,
+            "missing": 0,
+            "present_n": 26110,
+            "target_n": 26110,
+            "valid": 26108,
+            "valid_rate": 0.999923400995787
+          }
+        },
+        "by_dataset_language": {
+          "global_mmlu:bn": {
+            "accuracy": 0.6740382400368579,
+            "accuracy_on_present": 0.6740382400368579,
+            "correct": 2926,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4340,
+            "valid_rate": 0.9997696383321816
+          },
+          "global_mmlu:hi": {
+            "accuracy": 0.6929278967979728,
+            "accuracy_on_present": 0.6929278967979728,
+            "correct": 3008,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "global_mmlu:ne": {
+            "accuracy": 0.6523842432619212,
+            "accuracy_on_present": 0.6523842432619212,
+            "correct": 2832,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "global_mmlu:sw": {
+            "accuracy": 0.4634876756507717,
+            "accuracy_on_present": 0.4634876756507717,
+            "correct": 2012,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "global_mmlu:te": {
+            "accuracy": 0.6447823082239116,
+            "accuracy_on_present": 0.6447823082239116,
+            "correct": 2799,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "mmlu_prox:bn": {
+            "accuracy": 0.4670624281884336,
+            "accuracy_on_present": 0.4670624281884336,
+            "correct": 2439,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          },
+          "mmlu_prox:hi": {
+            "accuracy": 0.47050938337801607,
+            "accuracy_on_present": 0.47050938337801607,
+            "correct": 2457,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5221,
+            "valid_rate": 0.9998085024894676
+          },
+          "mmlu_prox:ne": {
+            "accuracy": 0.4716583684412103,
+            "accuracy_on_present": 0.4716583684412103,
+            "correct": 2463,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          },
+          "mmlu_prox:sw": {
+            "accuracy": 0.40884718498659517,
+            "accuracy_on_present": 0.40884718498659517,
+            "correct": 2135,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5221,
+            "valid_rate": 0.9998085024894676
+          },
+          "mmlu_prox:te": {
+            "accuracy": 0.47970126388356954,
+            "accuracy_on_present": 0.47970126388356954,
+            "correct": 2505,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          }
+        },
+        "correct": 25576,
+        "missing": 0,
+        "present_n": 47815,
+        "target_n": 47815,
+        "valid": 47812,
+        "valid_rate": 0.9999372581825787
+      }
+    },
+    {
+      "label": "w/o rerank",
+      "paths": [
+        "artifacts/ca_mem/full_ca_ablation_qwen3_8b/ca_no_rerank_top5/predictions.jsonl",
+        "artifacts/ca_mem/full_ca_ablation_qwen3_8b/ca_no_rerank_top5/global_plus_mmlu_prox_en/predictions.jsonl",
+        "artifacts/ca_mem/full_ca_ablation_qwen3_8b/ca_no_rerank_top5/mmlu_prox_low_resource/predictions.jsonl"
+      ],
+      "summary": {
+        "accuracy": 0.6777789396632856,
+        "accuracy_on_present": 0.6777789396632856,
+        "by_dataset": {
+          "global_mmlu": {
+            "accuracy": 0.6431697765491822,
+            "accuracy_on_present": 0.6431697765491822,
+            "correct": 13960,
+            "missing": 0,
+            "present_n": 21705,
+            "target_n": 21705,
+            "valid": 21705,
+            "valid_rate": 1.0
+          },
+          "mmlu_prox": {
+            "accuracy": 0.7065492148602068,
+            "accuracy_on_present": 0.7065492148602068,
+            "correct": 18448,
+            "missing": 0,
+            "present_n": 26110,
+            "target_n": 26110,
+            "valid": 26110,
+            "valid_rate": 1.0
+          }
+        },
+        "by_dataset_language": {
+          "global_mmlu:bn": {
+            "accuracy": 0.6943100668048837,
+            "accuracy_on_present": 0.6943100668048837,
+            "correct": 3014,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "global_mmlu:hi": {
+            "accuracy": 0.7171158719189127,
+            "accuracy_on_present": 0.7171158719189127,
+            "correct": 3113,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "global_mmlu:ne": {
+            "accuracy": 0.6731167933655839,
+            "accuracy_on_present": 0.6731167933655839,
+            "correct": 2922,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "global_mmlu:sw": {
+            "accuracy": 0.46417876065422714,
+            "accuracy_on_present": 0.46417876065422714,
+            "correct": 2015,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "global_mmlu:te": {
+            "accuracy": 0.6671273900023036,
+            "accuracy_on_present": 0.6671273900023036,
+            "correct": 2896,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "mmlu_prox:bn": {
+            "accuracy": 0.7282650325545768,
+            "accuracy_on_present": 0.7282650325545768,
+            "correct": 3803,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          },
+          "mmlu_prox:hi": {
+            "accuracy": 0.7361164304864036,
+            "accuracy_on_present": 0.7361164304864036,
+            "correct": 3844,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          },
+          "mmlu_prox:ne": {
+            "accuracy": 0.7353504404442742,
+            "accuracy_on_present": 0.7353504404442742,
+            "correct": 3840,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          },
+          "mmlu_prox:sw": {
+            "accuracy": 0.6013021830716201,
+            "accuracy_on_present": 0.6013021830716201,
+            "correct": 3140,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          },
+          "mmlu_prox:te": {
+            "accuracy": 0.7317119877441594,
+            "accuracy_on_present": 0.7317119877441594,
+            "correct": 3821,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          }
+        },
+        "correct": 32408,
+        "missing": 0,
+        "present_n": 47815,
+        "target_n": 47815,
+        "valid": 47815,
+        "valid_rate": 1.0
+      }
+    },
+    {
+      "label": "random cards",
+      "paths": [
+        "artifacts/ca_mem/full_ca_ablation_qwen3_8b/ca_random_global_top5/predictions.jsonl",
+        "artifacts/ca_mem/full_ca_ablation_qwen3_8b/ca_random_global_top5/global_plus_mmlu_prox_en/predictions.jsonl",
+        "artifacts/ca_mem/full_ca_ablation_qwen3_8b/ca_random_global_top5/mmlu_prox_low_resource/predictions.jsonl"
+      ],
+      "summary": {
+        "accuracy": 0.4503398515110321,
+        "accuracy_on_present": 0.4503398515110321,
+        "by_dataset": {
+          "global_mmlu": {
+            "accuracy": 0.5015894955079475,
+            "accuracy_on_present": 0.5015894955079475,
+            "correct": 10887,
+            "missing": 0,
+            "present_n": 21705,
+            "target_n": 21705,
+            "valid": 21703,
+            "valid_rate": 0.9999078553328726
+          },
+          "mmlu_prox": {
+            "accuracy": 0.4077364994255075,
+            "accuracy_on_present": 0.4077364994255075,
+            "correct": 10646,
+            "missing": 0,
+            "present_n": 26110,
+            "target_n": 26110,
+            "valid": 26104,
+            "valid_rate": 0.9997702029873612
+          }
+        },
+        "by_dataset_language": {
+          "global_mmlu:bn": {
+            "accuracy": 0.5337479843354066,
+            "accuracy_on_present": 0.5337479843354066,
+            "correct": 2317,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4340,
+            "valid_rate": 0.9997696383321816
+          },
+          "global_mmlu:hi": {
+            "accuracy": 0.5650771711587191,
+            "accuracy_on_present": 0.5650771711587191,
+            "correct": 2453,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "global_mmlu:ne": {
+            "accuracy": 0.5155494125777471,
+            "accuracy_on_present": 0.5155494125777471,
+            "correct": 2238,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "global_mmlu:sw": {
+            "accuracy": 0.3900023036166782,
+            "accuracy_on_present": 0.3900023036166782,
+            "correct": 1693,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "global_mmlu:te": {
+            "accuracy": 0.5035706058511864,
+            "accuracy_on_present": 0.5035706058511864,
+            "correct": 2186,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4340,
+            "valid_rate": 0.9997696383321816
+          },
+          "mmlu_prox:bn": {
+            "accuracy": 0.41114515511298355,
+            "accuracy_on_present": 0.41114515511298355,
+            "correct": 2147,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5219,
+            "valid_rate": 0.9994255074684029
+          },
+          "mmlu_prox:hi": {
+            "accuracy": 0.4197625430869399,
+            "accuracy_on_present": 0.4197625430869399,
+            "correct": 2192,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5219,
+            "valid_rate": 0.9994255074684029
+          },
+          "mmlu_prox:ne": {
+            "accuracy": 0.42550746840291076,
+            "accuracy_on_present": 0.42550746840291076,
+            "correct": 2222,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          },
+          "mmlu_prox:sw": {
+            "accuracy": 0.3626962849482957,
+            "accuracy_on_present": 0.3626962849482957,
+            "correct": 1894,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          },
+          "mmlu_prox:te": {
+            "accuracy": 0.4195710455764075,
+            "accuracy_on_present": 0.4195710455764075,
+            "correct": 2191,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          }
+        },
+        "correct": 21533,
+        "missing": 0,
+        "present_n": 47815,
+        "target_n": 47815,
+        "valid": 47807,
+        "valid_rate": 0.9998326884868765
+      }
+    },
+    {
+      "label": "same-subject random",
+      "paths": [
+        "artifacts/ca_mem/full_ca_ablation_qwen3_8b/ca_random_same_subject_top5/predictions.jsonl",
+        "artifacts/ca_mem/full_ca_ablation_qwen3_8b/ca_random_same_subject_top5/global_plus_mmlu_prox_en/predictions.jsonl",
+        "artifacts/ca_mem/full_ca_ablation_qwen3_8b/ca_random_same_subject_top5/mmlu_prox_low_resource/predictions.jsonl"
+      ],
+      "summary": {
+        "accuracy": 0.45312140541671025,
+        "accuracy_on_present": 0.45312140541671025,
+        "by_dataset": {
+          "global_mmlu": {
+            "accuracy": 0.5036166781847501,
+            "accuracy_on_present": 0.5036166781847501,
+            "correct": 10931,
+            "missing": 0,
+            "present_n": 21705,
+            "target_n": 21705,
+            "valid": 21703,
+            "valid_rate": 0.9999078553328726
+          },
+          "mmlu_prox": {
+            "accuracy": 0.41114515511298355,
+            "accuracy_on_present": 0.41114515511298355,
+            "correct": 10735,
+            "missing": 0,
+            "present_n": 26110,
+            "target_n": 26110,
+            "valid": 26107,
+            "valid_rate": 0.9998851014936806
+          }
+        },
+        "by_dataset_language": {
+          "global_mmlu:bn": {
+            "accuracy": 0.5360516010135913,
+            "accuracy_on_present": 0.5360516010135913,
+            "correct": 2327,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4340,
+            "valid_rate": 0.9997696383321816
+          },
+          "global_mmlu:hi": {
+            "accuracy": 0.566920064501267,
+            "accuracy_on_present": 0.566920064501267,
+            "correct": 2461,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "global_mmlu:ne": {
+            "accuracy": 0.5201566459341166,
+            "accuracy_on_present": 0.5201566459341166,
+            "correct": 2258,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "global_mmlu:sw": {
+            "accuracy": 0.3927666436304999,
+            "accuracy_on_present": 0.3927666436304999,
+            "correct": 1705,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "global_mmlu:te": {
+            "accuracy": 0.5021884358442755,
+            "accuracy_on_present": 0.5021884358442755,
+            "correct": 2180,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4340,
+            "valid_rate": 0.9997696383321816
+          },
+          "mmlu_prox:bn": {
+            "accuracy": 0.4128686327077748,
+            "accuracy_on_present": 0.4128686327077748,
+            "correct": 2156,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5221,
+            "valid_rate": 0.9998085024894676
+          },
+          "mmlu_prox:hi": {
+            "accuracy": 0.4268479509766373,
+            "accuracy_on_present": 0.4268479509766373,
+            "correct": 2229,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5221,
+            "valid_rate": 0.9998085024894676
+          },
+          "mmlu_prox:ne": {
+            "accuracy": 0.4287629260819609,
+            "accuracy_on_present": 0.4287629260819609,
+            "correct": 2239,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5221,
+            "valid_rate": 0.9998085024894676
+          },
+          "mmlu_prox:sw": {
+            "accuracy": 0.36595174262734587,
+            "accuracy_on_present": 0.36595174262734587,
+            "correct": 1911,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          },
+          "mmlu_prox:te": {
+            "accuracy": 0.42129452317119875,
+            "accuracy_on_present": 0.42129452317119875,
+            "correct": 2200,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          }
+        },
+        "correct": 21666,
+        "missing": 0,
+        "present_n": 47815,
+        "target_n": 47815,
+        "valid": 47810,
+        "valid_rate": 0.9998954303042978
+      }
+    },
+    {
+      "label": "top-1",
+      "paths": [
+        "artifacts/ca_mem/full_ca_ablation_qwen3_8b/ca_top1/predictions.jsonl",
+        "artifacts/ca_mem/full_ca_ablation_qwen3_8b/ca_top1/global_plus_mmlu_prox_en/predictions.jsonl",
+        "artifacts/ca_mem/full_ca_ablation_qwen3_8b/ca_top1/mmlu_prox_low_resource/predictions.jsonl"
+      ],
+      "summary": {
+        "accuracy": 0.5382620516574297,
+        "accuracy_on_present": 0.5382620516574297,
+        "by_dataset": {
+          "global_mmlu": {
+            "accuracy": 0.6333102971665515,
+            "accuracy_on_present": 0.6333102971665515,
+            "correct": 13746,
+            "missing": 0,
+            "present_n": 21705,
+            "target_n": 21705,
+            "valid": 21704,
+            "valid_rate": 0.9999539276664363
+          },
+          "mmlu_prox": {
+            "accuracy": 0.45924932975871313,
+            "accuracy_on_present": 0.45924932975871313,
+            "correct": 11991,
+            "missing": 0,
+            "present_n": 26110,
+            "target_n": 26110,
+            "valid": 26110,
+            "valid_rate": 1.0
+          }
+        },
+        "by_dataset_language": {
+          "global_mmlu:bn": {
+            "accuracy": 0.6844045150886893,
+            "accuracy_on_present": 0.6844045150886893,
+            "correct": 2971,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4340,
+            "valid_rate": 0.9997696383321816
+          },
+          "global_mmlu:hi": {
+            "accuracy": 0.7039852568532596,
+            "accuracy_on_present": 0.7039852568532596,
+            "correct": 3056,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "global_mmlu:ne": {
+            "accuracy": 0.663902326652845,
+            "accuracy_on_present": 0.663902326652845,
+            "correct": 2882,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "global_mmlu:sw": {
+            "accuracy": 0.4604929739691315,
+            "accuracy_on_present": 0.4604929739691315,
+            "correct": 1999,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "global_mmlu:te": {
+            "accuracy": 0.6537664132688321,
+            "accuracy_on_present": 0.6537664132688321,
+            "correct": 2838,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "mmlu_prox:bn": {
+            "accuracy": 0.46974339333588666,
+            "accuracy_on_present": 0.46974339333588666,
+            "correct": 2453,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          },
+          "mmlu_prox:hi": {
+            "accuracy": 0.47338184603600153,
+            "accuracy_on_present": 0.47338184603600153,
+            "correct": 2472,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          },
+          "mmlu_prox:ne": {
+            "accuracy": 0.4695518958253543,
+            "accuracy_on_present": 0.4695518958253543,
+            "correct": 2452,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          },
+          "mmlu_prox:sw": {
+            "accuracy": 0.4054002297970126,
+            "accuracy_on_present": 0.4054002297970126,
+            "correct": 2117,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          },
+          "mmlu_prox:te": {
+            "accuracy": 0.4781692837993106,
+            "accuracy_on_present": 0.4781692837993106,
+            "correct": 2497,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          }
+        },
+        "correct": 25737,
+        "missing": 0,
+        "present_n": 47815,
+        "target_n": 47815,
+        "valid": 47814,
+        "valid_rate": 0.9999790860608596
+      }
+    },
+    {
+      "label": "top-3",
+      "paths": [
+        "artifacts/ca_mem/full_ca_ablation_qwen3_8b/ca_top3/predictions.jsonl",
+        "artifacts/ca_mem/full_ca_ablation_qwen3_8b/ca_top3/global_plus_mmlu_prox_en/predictions.jsonl",
+        "artifacts/ca_mem/full_ca_ablation_qwen3_8b/ca_top3/mmlu_prox_low_resource/predictions.jsonl"
+      ],
+      "summary": {
+        "accuracy": 0.5358569486562794,
+        "accuracy_on_present": 0.5358569486562794,
+        "by_dataset": {
+          "global_mmlu": {
+            "accuracy": 0.6286109191430546,
+            "accuracy_on_present": 0.6286109191430546,
+            "correct": 13644,
+            "missing": 0,
+            "present_n": 21705,
+            "target_n": 21705,
+            "valid": 21704,
+            "valid_rate": 0.9999539276664363
+          },
+          "mmlu_prox": {
+            "accuracy": 0.45875143623132897,
+            "accuracy_on_present": 0.45875143623132897,
+            "correct": 11978,
+            "missing": 0,
+            "present_n": 26110,
+            "target_n": 26110,
+            "valid": 26110,
+            "valid_rate": 1.0
+          }
+        },
+        "by_dataset_language": {
+          "global_mmlu:bn": {
+            "accuracy": 0.6768025800506796,
+            "accuracy_on_present": 0.6768025800506796,
+            "correct": 2938,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4340,
+            "valid_rate": 0.9997696383321816
+          },
+          "global_mmlu:hi": {
+            "accuracy": 0.7014512785072564,
+            "accuracy_on_present": 0.7014512785072564,
+            "correct": 3045,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "global_mmlu:ne": {
+            "accuracy": 0.6567611149504723,
+            "accuracy_on_present": 0.6567611149504723,
+            "correct": 2851,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "global_mmlu:sw": {
+            "accuracy": 0.46141442064040544,
+            "accuracy_on_present": 0.46141442064040544,
+            "correct": 2003,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "global_mmlu:te": {
+            "accuracy": 0.6466252015664593,
+            "accuracy_on_present": 0.6466252015664593,
+            "correct": 2807,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "mmlu_prox:bn": {
+            "accuracy": 0.4647644580620452,
+            "accuracy_on_present": 0.4647644580620452,
+            "correct": 2427,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          },
+          "mmlu_prox:hi": {
+            "accuracy": 0.4745308310991957,
+            "accuracy_on_present": 0.4745308310991957,
+            "correct": 2478,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          },
+          "mmlu_prox:ne": {
+            "accuracy": 0.4693603983148219,
+            "accuracy_on_present": 0.4693603983148219,
+            "correct": 2451,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          },
+          "mmlu_prox:sw": {
+            "accuracy": 0.4031022596706243,
+            "accuracy_on_present": 0.4031022596706243,
+            "correct": 2105,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          },
+          "mmlu_prox:te": {
+            "accuracy": 0.48199923400995787,
+            "accuracy_on_present": 0.48199923400995787,
+            "correct": 2517,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          }
+        },
+        "correct": 25622,
+        "missing": 0,
+        "present_n": 47815,
+        "target_n": 47815,
+        "valid": 47814,
+        "valid_rate": 0.9999790860608596
+      }
+    },
+    {
+      "label": "top-10",
+      "paths": [
+        "artifacts/ca_mem/full_ca_ablation_qwen3_8b/ca_top10/predictions.jsonl",
+        "artifacts/ca_mem/full_ca_ablation_qwen3_8b/ca_top10/global_plus_mmlu_prox_en/predictions.jsonl",
+        "artifacts/ca_mem/full_ca_ablation_qwen3_8b/ca_top10/mmlu_prox_low_resource/predictions.jsonl"
+      ],
+      "summary": {
+        "accuracy": 0.5336400711073931,
+        "accuracy_on_present": 0.5336400711073931,
+        "by_dataset": {
+          "global_mmlu": {
+            "accuracy": 0.622805805114029,
+            "accuracy_on_present": 0.622805805114029,
+            "correct": 13518,
+            "missing": 0,
+            "present_n": 21705,
+            "target_n": 21705,
+            "valid": 21704,
+            "valid_rate": 0.9999539276664363
+          },
+          "mmlu_prox": {
+            "accuracy": 0.45951742627345843,
+            "accuracy_on_present": 0.45951742627345843,
+            "correct": 11998,
+            "missing": 0,
+            "present_n": 26110,
+            "target_n": 26110,
+            "valid": 26109,
+            "valid_rate": 0.9999617004978936
+          }
+        },
+        "by_dataset_language": {
+          "global_mmlu:bn": {
+            "accuracy": 0.6751900483759502,
+            "accuracy_on_present": 0.6751900483759502,
+            "correct": 2931,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4340,
+            "valid_rate": 0.9997696383321816
+          },
+          "global_mmlu:hi": {
+            "accuracy": 0.6899331951163327,
+            "accuracy_on_present": 0.6899331951163327,
+            "correct": 2995,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "global_mmlu:ne": {
+            "accuracy": 0.6486984565768256,
+            "accuracy_on_present": 0.6486984565768256,
+            "correct": 2816,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "global_mmlu:sw": {
+            "accuracy": 0.45841971895876527,
+            "accuracy_on_present": 0.45841971895876527,
+            "correct": 1990,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "global_mmlu:te": {
+            "accuracy": 0.6417876065422714,
+            "accuracy_on_present": 0.6417876065422714,
+            "correct": 2786,
+            "missing": 0,
+            "present_n": 4341,
+            "target_n": 4341,
+            "valid": 4341,
+            "valid_rate": 1.0
+          },
+          "mmlu_prox:bn": {
+            "accuracy": 0.4687859057832248,
+            "accuracy_on_present": 0.4687859057832248,
+            "correct": 2448,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          },
+          "mmlu_prox:hi": {
+            "accuracy": 0.472041363462275,
+            "accuracy_on_present": 0.472041363462275,
+            "correct": 2465,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5221,
+            "valid_rate": 0.9998085024894676
+          },
+          "mmlu_prox:ne": {
+            "accuracy": 0.47223286097280737,
+            "accuracy_on_present": 0.47223286097280737,
+            "correct": 2466,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          },
+          "mmlu_prox:sw": {
+            "accuracy": 0.4071237073918039,
+            "accuracy_on_present": 0.4071237073918039,
+            "correct": 2126,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          },
+          "mmlu_prox:te": {
+            "accuracy": 0.47740329375718116,
+            "accuracy_on_present": 0.47740329375718116,
+            "correct": 2493,
+            "missing": 0,
+            "present_n": 5222,
+            "target_n": 5222,
+            "valid": 5222,
+            "valid_rate": 1.0
+          }
+        },
+        "correct": 25516,
+        "missing": 0,
+        "present_n": 47815,
+        "target_n": 47815,
+        "valid": 47813,
+        "valid_rate": 0.9999581721217191
+      }
+    }
+  ]
+}
