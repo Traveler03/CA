@@ -1,0 +1,40 @@
+[2026-08-21T17:31:42+08:00] GPU0 full queue started
+[2026-08-21T17:31:42+08:00] waiting for existing Ministral CORAL GPU0 sequence pid=244758
+[2026-08-22T11:49:58+08:00] existing Ministral CORAL GPU0 sequence pid=244758 finished
+[2026-08-22T11:50:34+08:00] coverage complete: {"coverage": 1.0, "error_rows": 0, "method": "CORAL-Wikipag", "missing": 0, "model_root": "artifacts/model_eval_20260821/ministral3_8b_instruct_2512_bf16", "present": 47815, "target": 47815}
+[2026-08-22T11:50:34+08:00] refreshing two-model summary
+[2026-08-22T11:52:52+08:00] two-model summary refreshed
+[2026-08-22T11:52:52+08:00] start ministral_ca_shard0: scripts/launch_model_eval_20260821.sh ministral-ca-shard0
+[2026-08-22T13:30:27+08:00] done ministral_ca_shard0
+[2026-08-22T13:30:27+08:00] start ministral_ca_shard1: scripts/launch_model_eval_20260821.sh ministral-ca-shard1
+[2026-08-22T15:08:32+08:00] done ministral_ca_shard1
+[2026-08-22T15:08:44+08:00] coverage complete: {"coverage": 1.0, "error_rows": 0, "method": "CA", "missing": 0, "model_root": "artifacts/model_eval_20260821/ministral3_8b_instruct_2512_bf16", "present": 47815, "target": 47815}
+[2026-08-22T15:08:44+08:00] refreshing two-model summary
+[2026-08-22T15:11:17+08:00] two-model summary refreshed
+[2026-08-22T15:11:17+08:00] Llama weights already complete
+[2026-08-22T15:11:17+08:00] starting English FAISS service on GPU0 port 8897
+[2026-08-22T15:14:10+08:00] English FAISS service healthy pid=354508
+[2026-08-22T15:14:10+08:00] start llama_base_shard0: scripts/launch_model_eval_20260821.sh llama-base-shard0
+[2026-08-22T16:22:38+08:00] done llama_base_shard0
+[2026-08-22T16:22:38+08:00] start llama_base_shard1: scripts/launch_model_eval_20260821.sh llama-base-shard1
+[2026-08-22T17:31:43+08:00] done llama_base_shard1
+[2026-08-22T17:32:01+08:00] coverage complete: {"coverage": 1.0, "error_rows": 0, "method": "zero_shot", "missing": 0, "model_root": "artifacts/model_eval_20260821/llama3_1_8b_instruct", "present": 47815, "target": 47815}
+[2026-08-22T17:32:19+08:00] coverage complete: {"coverage": 1.0, "error_rows": 0, "method": "tCRAG", "missing": 0, "model_root": "artifacts/model_eval_20260821/llama3_1_8b_instruct", "present": 47815, "target": 47815}
+[2026-08-22T17:32:19+08:00] refreshing two-model summary
+[2026-08-22T17:35:49+08:00] two-model summary refreshed
+[2026-08-22T17:35:49+08:00] stopping pid=354508
+[2026-08-22T17:35:54+08:00] start llama_coral_shard0: scripts/launch_model_eval_20260821.sh llama-coral-shard0
+[2026-08-22T22:39:40+08:00] done llama_coral_shard0
+[2026-08-22T22:39:40+08:00] start llama_coral_shard1: scripts/launch_model_eval_20260821.sh llama-coral-shard1
+[2026-08-23T03:42:30+08:00] done llama_coral_shard1
+[2026-08-23T03:43:05+08:00] coverage complete: {"coverage": 1.0, "error_rows": 0, "method": "CORAL-Wikipag", "missing": 0, "model_root": "artifacts/model_eval_20260821/llama3_1_8b_instruct", "present": 47815, "target": 47815}
+[2026-08-23T03:43:05+08:00] refreshing two-model summary
+[2026-08-23T03:47:43+08:00] two-model summary refreshed
+[2026-08-23T03:47:43+08:00] start llama_ca_shard0: scripts/launch_model_eval_20260821.sh llama-ca-shard0
+[2026-08-23T05:15:47+08:00] done llama_ca_shard0
+[2026-08-23T05:15:47+08:00] start llama_ca_shard1: scripts/launch_model_eval_20260821.sh llama-ca-shard1
+[2026-08-23T06:43:56+08:00] done llama_ca_shard1
+[2026-08-23T06:44:07+08:00] coverage complete: {"coverage": 1.0, "error_rows": 0, "method": "CA", "missing": 0, "model_root": "artifacts/model_eval_20260821/llama3_1_8b_instruct", "present": 47815, "target": 47815}
+[2026-08-23T06:44:07+08:00] refreshing two-model summary
+[2026-08-23T06:49:06+08:00] two-model summary refreshed
+[2026-08-23T06:49:06+08:00] GPU0 full queue complete
