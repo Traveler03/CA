@@ -1,5 +1,14 @@
 # *ACL Paper Styles
 
+## CA Experiment Inventory
+
+[Current experiment inventory (Chinese)](experiment_inventory_zh.md) lists
+archived main experiments, ablations, supplementary analyses, and items
+awaiting evidence verification. Measured results and theoretical analyses
+are identified separately, with source links pinned to the audited commit.
+
+## Paper Templates
+
 This directory contains the latest LaTeX and Word templates for *ACL
 conferences.
 
