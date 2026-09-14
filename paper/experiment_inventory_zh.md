@@ -2,7 +2,7 @@
 
 更新时间：2026-09-14。
 
-研究版本：英文 Wikipedia/Wikipag 概念用法库，冻结答题模型，无额外 SFT 或 GRPO。
+研究版本：从高资源语言知识构建概念用法库，支持低资源语言推理；答题模型冻结，无额外 SFT 或 GRPO。
 
 核验仓库：[Traveler03/CA][repo]。本次核验时 `main` 为 `bda6641d818db682ba95e7dee024b04f7c864aa2`，下列远程证据均固定到该提交。
 
@@ -15,8 +15,8 @@
 | 主实验 | 3 个答题模型，11 个模型与方法配置 | 已归档实测，见第 3 节 |
 | Qwen 运行阶段消融 | 完整 CA + 6 个变体 | 已归档实测；完整 CA 与主实验 M03 相同，不重复计数 |
 | 主实验与消融合计 | 17 个不重复的低资源评测配置 | 每个配置覆盖 47,815 个实例；这是配置数，不是 17 次独立重复或多随机种子实验 |
-| 英语补充评测 | Qwen CA 的 Global-MMLU/en、MMLU-ProX/en | 已归档实测，不混入五语言主实验均值 |
-| 提示版本历史对照 | 本地化指令提示与旧英语指令提示 | 汇总中有记录；旧版本单独预测文件尚未定位，见第 5 节 |
+| 高资源语言补充评测 | Qwen CA 的 Global-MMLU/en、MMLU-ProX/en | 已归档实测，不混入五语言主实验均值 |
+| 提示版本历史对照 | 本地化指令提示与旧高资源语言指令提示（`en`） | 汇总中有记录；旧版本单独预测文件尚未定位，见第 5 节 |
 | 分语言与跨模型比较 | 主实验的五语言展开、CA 相对 tCRAG 的差值 | 已完成的结果拆分，不是新增模型运行 |
 | 运行统计 | 输出有效率、Qwen CA 调用与回退统计、Qwen tCRAG 延迟 | 已有记录；不等于完整公平的效率对比 |
 | 知识库结构分析 | 全库规模、学科分布、字段数量、文本长度 | 已完成全库统计，不是下游消融 |
@@ -46,13 +46,15 @@
 | Ministral-3-8B | `Ministral-3-8B-Instruct-2512`；归档运行目录标记 BF16 |
 | Llama-3.1-8B | `Llama-3.1-8B-Instruct` |
 | 检索编码器 | `Qwen3-Embedding-4B`，不是答题模型 |
-| tCRAG | 归档报告标签；当前稿件称 tRAG，代码方法为 `trag`，即问题翻译后检索英语 Wiki |
+| tCRAG | 归档报告标签；当前稿件称 tRAG，代码方法为 `trag`，即将问题翻译为高资源语言后检索对应知识库（归档实现为 `en` Wiki） |
 | CORAL-Wikipag | 使用 Wikipag 的 CORAL 适配实现；已核对的启动配置是一轮检索，包含双查询与答案门控，不能直接称为原论文完整多轮复现 |
 | CA | 概念查询、学科过滤检索、重排与检查、基于概念用法卡片答题 |
 
 完整 CA 通常从 20 个候选中选择至多 5 张卡片；不是每题必定使用 5 张。检查阶段还会改写指导，因此“重排”不等于仅调整排序。
 
 ### 2.3 知识库与评测版本
+
+本文用“高资源语言知识”描述源知识的资源角色。当前归档使用 Wikipedia/Wikipag 的 `en` 语料，高资源语言补充评测也仅覆盖 `en`；具体来源与语言代码作为复现信息保留。
 
 按作者确认，完整知识库的 **60,653 张卡片均为 clean**，覆盖 57 个学科；统计不再按旧标签分割知识库。
 
@@ -173,16 +175,16 @@ Qwen CA 的第一个分片混合了多个数据集与语言；使用其中 `by_s
 
 ## 5. 其他已有评测与运行统计
 
-### 5.1 英语补充评测
+### 5.1 高资源语言补充评测
 
-Qwen3-8B 的完整 CA 归档另外包含以下英语结果，证据为同一份 [CA 汇总][ca-json]。
+Qwen3-8B 的完整 CA 归档另外包含以下高资源语言（`en`）结果，证据为同一份 [CA 汇总][ca-json]。
 
 | 数据集 / 语言 | 实例数 | 正确题数 | 准确率 |
 | --- | ---: | ---: | ---: |
 | global_mmlu / en | 4,341 | 3,568 | 82.19 |
 | mmlu_prox / en | 5,222 | 2,581 | 49.43 |
 
-加入这两个英语分层后，CA 归档共 57,378 个实例，其中 31,725 个正确。该总量与五语言主实验的 47,815 不能混用；英语补充评测不是五语言主实验的新基线。
+加入这两个高资源语言评测分层后，CA 归档共 57,378 个实例，其中 31,725 个正确。该总量与五语言主实验的 47,815 不能混用；高资源语言补充评测不是五语言主实验的新基线。
 
 ### 5.2 零样本提示版本历史对照
 
@@ -190,10 +192,10 @@ Qwen3-8B 的完整 CA 归档另外包含以下英语结果，证据为同一份 
 
 | 版本 | 正确题数 | 综合准确率 |
 | --- | ---: | ---: |
-| 旧英语指令提示（摘要内历史对照） | 18,782 | 39.28 |
+| 旧高资源语言指令提示（`en`，摘要内历史对照） | 18,782 | 39.28 |
 | 本地化指令提示（M01） | 17,909 | 37.45 |
 
-这里比较的是答题指令的提示语言版本，不是把所有题目换成英语。旧版本的单独预测路径尚未在本次仓库快照中定位，因此标记为“摘要内历史对照”，不并入第 3 节当前主表，也不据此宣称已完成受控的查询语言消融。
+这里比较的是答题指令的提示语言版本，不是把所有题目改为高资源语言版本。旧版本的单独预测路径尚未在本次仓库快照中定位，因此标记为“摘要内历史对照”，不并入第 3 节当前主表，也不据此宣称已完成受控的查询语言消融。
 
 ### 5.3 输出有效性与完成覆盖
 
@@ -221,7 +223,7 @@ Qwen3-8B 的完整 CA 归档另外包含以下英语结果，证据为同一份 
 
 | 分片范围 | 实例数 | 记录的模型调用数 | 查询改写回退数 | 重排检查回退数 | 平均最终卡片数 | 运行错误数 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Global-MMLU 六语言 + MMLU-ProX 英语 | 31,268 | 93,804 | 485 | 49 | 2.536 | 0 |
+| Global-MMLU 六语言 + MMLU-ProX 高资源语言（en） | 31,268 | 93,804 | 485 | 49 | 2.536 | 0 |
 | MMLU-ProX 五种低资源语言 | 26,110 | 78,330 | 234 | 196 | 2.582 | 0 |
 
 证据：[混合分片汇总][ca-run-a]、[MMLU-ProX 低资源分片汇总][ca-run-b]。两份汇总中的调用数均为实例数的三倍。调用数不能替代输入输出 token、GPU 时间或货币费用；回退计数也尚未与逐题得失关联起来。
@@ -270,7 +272,7 @@ Qwen3-8B 的完整 CA 归档另外包含以下英语结果，证据为同一份 
 
 ### 6.3 工程正确性验证
 
-已有卡片元数据可逆更正检查、前缀解析与边界测试，以及中英文论文数值和引用一致性检查。上一轮仓库测试记录为 36 项通过。
+已有卡片元数据可逆更正检查、前缀解析与边界测试，以及双语稿件数值和引用一致性检查。上一轮仓库测试记录为 36 项通过。
 
 这些属于工程验证，不计入主实验或消融数量。本次清单整理只读取并核对记录，没有重新执行答题、训练或索引构建。
 
@@ -291,7 +293,7 @@ T01 的输入来自[双模型汇总][two-json]，T02 的参考正确题数来自
 
 ## 8. 旧稿待核验的实验
 
-以下条目确实在[旧版英文稿](https://github.com/Traveler03/CA/blob/bda6641d818db682ba95e7dee024b04f7c864aa2/paper/latex/acl_latex.tex)中出现，但没有在本次核验的当前归档中找到足以对应其数字、模型和知识库版本的完整运行证据。旧稿主要涉及 CA-SFT 和另一版记忆设置，不能直接搬入当前冻结模型的 Wikipag 主表。
+以下条目确实在[旧版稿件](https://github.com/Traveler03/CA/blob/bda6641d818db682ba95e7dee024b04f7c864aa2/paper/latex/acl_latex.tex)中出现，但没有在本次核验的当前归档中找到足以对应其数字、模型和知识库版本的完整运行证据。旧稿主要涉及 CA-SFT 和另一版记忆设置，不能直接搬入当前冻结模型的 Wikipag 主表。
 
 本节是“待追溯条目索引”，不是认定这些实验已经完成，也不是认定旧稿数字是理论值。为避免误用，不在这里复制未核验的准确率、显著性或人工结果。
 
@@ -301,14 +303,14 @@ T01 的输入来自[双模型汇总][two-json]，T02 的参考正确题数来自
 | L02 | INCLUDE 与 MGSM 的扩展评测 | [额外基准](https://github.com/Traveler03/CA/blob/bda6641d818db682ba95e7dee024b04f7c864aa2/paper/latex/acl_latex.tex#L701) |
 | L03 | 无记忆、随机记忆、概念错配记忆、对齐记忆 | [旧稿检索质量组](https://github.com/Traveler03/CA/blob/bda6641d818db682ba95e7dee024b04f7c864aa2/paper/latex/acl_latex.tex#L491) |
 | L04 | Description Only、Usage Summary Only、Full Memory | [旧稿内容消融组](https://github.com/Traveler03/CA/blob/bda6641d818db682ba95e7dee024b04f7c864aa2/paper/latex/acl_latex.tex#L496) |
-| L05 | 原语言问题、英语问题、概念、概念加描述的检索查询对照 | [旧稿检索策略组](https://github.com/Traveler03/CA/blob/bda6641d818db682ba95e7dee024b04f7c864aa2/paper/latex/acl_latex.tex#L503) |
+| L05 | 原语言问题、高资源语言问题（`en`）、概念、概念加描述的检索查询对照 | [旧稿检索策略组](https://github.com/Traveler03/CA/blob/bda6641d818db682ba95e7dee024b04f7c864aa2/paper/latex/acl_latex.tex#L503) |
 | L06 | 随源数据增加的记忆增长曲线与类别分布 | [增长实验](https://github.com/Traveler03/CA/blob/bda6641d818db682ba95e7dee024b04f7c864aa2/paper/latex/acl_latex.tex#L561)、[库统计](https://github.com/Traveler03/CA/blob/bda6641d818db682ba95e7dee024b04f7c864aa2/paper/latex/acl_latex.tex#L1415) |
 | L07 | Raw Candidate、Curated、Minimal Update 的构建流程消融 | [构建消融](https://github.com/Traveler03/CA/blob/bda6641d818db682ba95e7dee024b04f7c864aa2/paper/latex/acl_latex.tex#L1496) |
 | L08 | 旧版本 Top-1/2/3 敏感性 | [旧稿 Top-k](https://github.com/Traveler03/CA/blob/bda6641d818db682ba95e7dee024b04f7c864aa2/paper/latex/acl_latex.tex#L1519) |
 | L09 | 分阶段输入输出 token 与相对推理成本 | [旧稿成本表](https://github.com/Traveler03/CA/blob/bda6641d818db682ba95e7dee024b04f7c864aa2/paper/latex/acl_latex.tex#L1548) |
-| L10 | 英语与中文概念锚点 | [锚点语言分析](https://github.com/Traveler03/CA/blob/bda6641d818db682ba95e7dee024b04f7c864aa2/paper/latex/acl_latex.tex#L1574) |
+| L10 | 高资源语言概念锚点对照（`en`/`zh`） | [锚点语言分析](https://github.com/Traveler03/CA/blob/bda6641d818db682ba95e7dee024b04f7c864aa2/paper/latex/acl_latex.tex#L1574) |
 | L11 | 检索阈值敏感性及开发集阈值选择 | [阈值敏感性](https://github.com/Traveler03/CA/blob/bda6641d818db682ba95e7dee024b04f7c864aa2/paper/latex/acl_latex.tex#L1602)、[开发集选择](https://github.com/Traveler03/CA/blob/bda6641d818db682ba95e7dee024b04f7c864aa2/paper/latex/acl_latex.tex#L1762) |
-| L12 | 高资源英语评测、记忆注入与未注入样本拆分 | [英语结果](https://github.com/Traveler03/CA/blob/bda6641d818db682ba95e7dee024b04f7c864aa2/paper/latex/acl_latex.tex#L1630)、[注入拆分](https://github.com/Traveler03/CA/blob/bda6641d818db682ba95e7dee024b04f7c864aa2/paper/latex/acl_latex.tex#L1641) |
+| L12 | 高资源语言（`en`）评测、记忆注入与未注入样本拆分 | [高资源语言结果](https://github.com/Traveler03/CA/blob/bda6641d818db682ba95e7dee024b04f7c864aa2/paper/latex/acl_latex.tex#L1630)、[注入拆分](https://github.com/Traveler03/CA/blob/bda6641d818db682ba95e7dee024b04f7c864aa2/paper/latex/acl_latex.tex#L1641) |
 | L13 | 旧版跨模型泛化，包括不同于当前主表的模型设置 | [旧版跨模型实验](https://github.com/Traveler03/CA/blob/bda6641d818db682ba95e7dee024b04f7c864aa2/paper/latex/acl_latex.tex#L1663) |
 | L14 | 配对 bootstrap、置信区间和显著性 | [统计可靠性](https://github.com/Traveler03/CA/blob/bda6641d818db682ba95e7dee024b04f7c864aa2/paper/latex/acl_latex.tex#L1702) |
 | L15 | Raw QA、Raw Trajectory、Raw QA + Concept Key 与完整记忆 | [原始记忆对照](https://github.com/Traveler03/CA/blob/bda6641d818db682ba95e7dee024b04f7c864aa2/paper/latex/acl_latex.tex#L1733) |
@@ -338,13 +340,13 @@ T01 的输入来自[双模型汇总][two-json]，T02 的参考正确题数来自
 | --- | --- | --- |
 | 主实验 | M01-M11，明确模型、基准与实现适配 | 缺失的 Qwen CORAL 分数、旧稿训练版本数字 |
 | 运行阶段消融 | A01-A06 和同一份 M03 参考结果 | 把去检查叫作仅排序消融，或把重复展示 M03 当新实验 |
-| 泛化与语言差异 | 第 3.2 节及单列的英语补充结果 | 未验证的“所有模型都提升”“语言无关”结论 |
+| 泛化与语言差异 | 第 3.2 节及单列的高资源语言补充结果 | 未验证的“所有模型都提升”“语言无关”结论 |
 | 资源分析 | 第 6 节的结构与字段可见性 | 将字段存在等同于内容正确、检索相关或下游有用 |
 | 系统运行分析 | 第 5.3-5.5 节的已记录统计 | 未对齐的效率排名或不存在的 token 成本 |
 | 条件分析附录 | T01-T06，连同假设和适用范围 | 将推导区间、计划样本量写成已完成实验 |
 | 后续补实验 | 第 8 节先找旧日志，第 9 节再确定重跑范围 | 不核对旧模型与知识库版本就直接复用旧表 |
 
-总结：**当前已归档的低资源主实验与运行消融共有 17 个不重复配置；另外有英语补充评测、部分历史对照与运行记录、全库分析及理论推导。内容表示、构建流程与人工质量等旧稿条目仍需追溯，不能算入当前版本已完成的实测证据。**
+总结：**当前已归档的低资源主实验与运行消融共有 17 个不重复配置；另外有高资源语言补充评测、部分历史对照与运行记录、全库分析及理论推导。内容表示、构建流程与人工质量等旧稿条目仍需追溯，不能算入当前版本已完成的实测证据。**
 
 ## 11. 来源索引与本次核验范围
 
@@ -354,7 +356,7 @@ T01 的输入来自[双模型汇总][two-json]，T02 的参考正确题数来自
 
 - 当前稿件保留在本地 `paper/latex/wikipag_acl_zh_draft.tex` 与 `paper/latex/wikipag_acl_en.tex`，未随本次清单发布。
 - 版本与证据补充记录保留在本地 `paper/source-ledger.md`，未随本次清单发布。本页不为未发布文件提供失效的在线链接。
-- 旧稿待核验入口：[旧版英文稿](https://github.com/Traveler03/CA/blob/bda6641d818db682ba95e7dee024b04f7c864aa2/paper/latex/acl_latex.tex)；此文件未在本次整理中修改。
+- 旧稿待核验入口：[旧版稿件](https://github.com/Traveler03/CA/blob/bda6641d818db682ba95e7dee024b04f7c864aa2/paper/latex/acl_latex.tex)；此文件未在本次整理中修改。
 - 远程可读报告：[Qwen tCRAG][trag-report]、[Qwen CA][ca-report]、[Qwen 消融][ablation-report]、[双模型主实验][two-report]。
 
 [repo]: https://github.com/Traveler03/CA/tree/bda6641d818db682ba95e7dee024b04f7c864aa2
