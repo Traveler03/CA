@@ -32,28 +32,59 @@ CoRAL-Wikipag 指仓库适配实现。Qwen3.5-9B 的 CoRAL 按既定迁移规则
 
 来源：Qwen 基线（`runs/retained_baselines_20260928/summary.json`）、Ministral／Llama 历史基线（`artifacts/evaluation/two_model_full_low_resource_20260821/two_model_summary/metrics.json`）。此前已撤下的旧 CA 主比较不恢复为当前成绩。
 
-## 主实验按语言展开
+## 主实验按 benchmark 与语言展开
 
-各语言合并 Global-MMLU 与 MMLU-ProX，每个单元格对应 9,563 条输入；总体对应 47,815 条。语言为 bn（孟加拉语）、hi（印地语）、ne（尼泊尔语）、sw（斯瓦希里语）、te（泰卢固语）。总体按未四舍五入的正确题数比例汇总。
+分别展示 Global-MMLU 和 MMLU-ProX。语言为 bn（孟加拉语）、hi（印地语）、ne（尼泊尔语）、sw（斯瓦希里语）、te（泰卢固语）；最后一列是该 benchmark 五种语言的总体准确率。实测值由正确题数汇总，计算完成后统一保留两位小数。
 
-| 模型 | 方法 | bn | hi | ne | sw | te | 总体 |
+Qwen3.5-9B 的 CoRAL-Wikipag 使用迁移估算，其余各行来自归档实测。Ministral、Llama 的历史基线与当前 CA 仍保留前述推理及评分协议差异。
+
+### Global-MMLU
+
+每种语言 4,341 条输入，该 benchmark 合计 21,705 条。
+
+| 模型 | 方法 | bn | hi | ne | sw | te | benchmark 总体 |
 |---|---|---:|---:|---:|---:|---:|---:|
-| Qwen3.5-9B | Zero-shot | 66.07% | 67.80% | 66.58% | 62.42% | 64.34% | 65.44% |
-| Qwen3.5-9B | tCRAG | 70.79% | 73.09% | 70.66% | 68.17% | 69.30% | 70.40% |
-| Qwen3.5-9B | CoRAL-Wikipag | 69.42% | 72.17% | 68.75% | 66.47% | 67.81% | 68.93% |
-| Qwen3.5-9B | CA | 77.25% | 78.58% | 76.99% | 72.72% | 75.76% | 76.26% |
-| Ministral-3-8B | Zero-shot | 42.53% | 44.25% | 42.87% | 33.57% | 41.78% | 41.00% |
-| Ministral-3-8B | tCRAG | 52.27% | 53.63% | 52.90% | 46.97% | 52.99% | 51.75% |
-| Ministral-3-8B | CoRAL-Wikipag | 50.51% | 51.66% | 49.92% | 44.40% | 50.21% | 49.34% |
-| Ministral-3-8B | CA | 68.34% | 69.18% | 67.40% | 52.66% | 67.08% | 64.93% |
-| Llama-3.1-8B | Zero-shot | 24.70% | 27.74% | 27.55% | 24.76% | 21.27% | 25.21% |
-| Llama-3.1-8B | tCRAG | 36.95% | 37.85% | 36.39% | 34.52% | 36.76% | 36.49% |
-| Llama-3.1-8B | CoRAL-Wikipag | 37.33% | 38.19% | 36.34% | 34.85% | 36.23% | 36.59% |
-| Llama-3.1-8B | CA | 48.43% | 51.28% | 48.70% | 45.91% | 48.08% | 48.48% |
+| Qwen3.5-9B | Zero-shot | 66.39% | 69.29% | 65.24% | 60.82% | 62.64% | 64.87% |
+| Qwen3.5-9B | tCRAG | 72.61% | 75.90% | 72.15% | 68.14% | 69.71% | 71.70% |
+| Qwen3.5-9B | CoRAL-Wikipag | 71.24% | 74.98% | 70.25% | 66.45% | 68.22% | 70.23% |
+| Qwen3.5-9B | CA | 79.96% | 81.52% | 78.30% | 72.03% | 76.20% | 77.60% |
+| Ministral-3-8B | Zero-shot | 57.59% | 60.65% | 56.32% | 42.71% | 54.92% | 54.44% |
+| Ministral-3-8B | tCRAG | 64.32% | 67.10% | 65.58% | 55.47% | 65.35% | 63.57% |
+| Ministral-3-8B | CoRAL-Wikipag | 63.86% | 65.93% | 62.96% | 53.90% | 63.26% | 61.98% |
+| Ministral-3-8B | CA | 74.02% | 75.65% | 72.47% | 51.95% | 71.57% | 69.13% |
+| Llama-3.1-8B | Zero-shot | 31.33% | 35.06% | 33.45% | 31.67% | 27.62% | 31.83% |
+| Llama-3.1-8B | tCRAG | 46.97% | 48.26% | 45.45% | 42.80% | 45.40% | 45.78% |
+| Llama-3.1-8B | CoRAL-Wikipag | 47.57% | 48.93% | 45.04% | 43.56% | 45.04% | 46.03% |
+| Llama-3.1-8B | CA | 57.45% | 60.38% | 56.14% | 53.44% | 55.56% | 56.60% |
 
-**表注：Qwen3.5-9B 的 CoRAL 一行采用逐语言迁移估算，其余各行来自归档实测汇总。** 对每种语言 `L`，计算 `CoRAL_3.5(L) = tCRAG_3.5(L) − [tCRAG_3(L) − CoRAL_3(L)]`，五种语言等权汇总后与 68.93% 的总体估算一致。该假设用于数值迁移，未通过 Qwen3.5 的新 CoRAL 运行验证。
+**表注：Qwen3.5-9B 的 CoRAL-Wikipag 一行为迁移估算，采用下述统一差值假设。**
 
-迁移依据为 Qwen3-8B 的 [固定提交汇总](https://github.com/Traveler03/CA/blob/cb0d1b2a3ae9a8523264f814a3c960f5e256809f/reports/full_multilingual_rag_qwen3_8b_results_20260811.json)：tCRAG 为 24,071/47,815，CoRAL 为 23,366/47,815；逐语言值使用该文件的 `by_language`。Ministral、Llama 的历史基线与 CA 保留前述协议差异。
+### MMLU-ProX
+
+每种语言 5,222 条输入，该 benchmark 合计 26,110 条。
+
+| 模型 | 方法 | bn | hi | ne | sw | te | benchmark 总体 |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Qwen3.5-9B | Zero-shot | 65.80% | 66.56% | 67.69% | 63.75% | 65.76% | 65.91% |
+| Qwen3.5-9B | tCRAG | 69.28% | 70.76% | 69.42% | 68.19% | 68.96% | 69.32% |
+| Qwen3.5-9B | CoRAL-Wikipag | 67.91% | 69.84% | 67.51% | 66.50% | 67.47% | 67.85% |
+| Qwen3.5-9B | CA | 74.99% | 76.14% | 75.91% | 73.29% | 75.39% | 75.14% |
+| Ministral-3-8B | Zero-shot | 30.01% | 30.62% | 31.69% | 25.97% | 30.85% | 29.83% |
+| Ministral-3-8B | tCRAG | 42.26% | 42.44% | 42.36% | 39.91% | 42.70% | 41.93% |
+| Ministral-3-8B | CoRAL-Wikipag | 39.41% | 39.79% | 39.08% | 36.50% | 39.37% | 38.83% |
+| Ministral-3-8B | CA | 63.62% | 63.81% | 63.18% | 53.26% | 63.35% | 61.44% |
+| Llama-3.1-8B | Zero-shot | 19.19% | 21.66% | 22.65% | 19.02% | 15.99% | 19.70% |
+| Llama-3.1-8B | tCRAG | 28.63% | 29.20% | 28.86% | 27.63% | 29.57% | 28.78% |
+| Llama-3.1-8B | CoRAL-Wikipag | 28.82% | 29.26% | 29.11% | 27.61% | 28.92% | 28.74% |
+| Llama-3.1-8B | CA | 40.92% | 43.72% | 42.51% | 39.64% | 41.86% | 41.73% |
+
+**表注：Qwen3.5-9B 的 CoRAL-Wikipag 一行为迁移估算，采用下述统一差值假设。**
+
+分 benchmark 的 CoRAL 估算延续逐语言迁移：`CoRAL_3.5(B,L) = tCRAG_3.5(B,L) − [tCRAG_3(L) − CoRAL_3(L)]`。Qwen3-8B 来源只给出了两个 benchmark 合并后的语言统计，因此这里额外假设同一种语言的差值可用于两个 benchmark；这些分项不代表新增实测。两张表按 21,705 与 26,110 条输入加权后，仍得到原先 68.93% 的总体估算。
+
+迁移来源为 Qwen3-8B 的 [固定提交汇总](https://github.com/Traveler03/CA/blob/cb0d1b2a3ae9a8523264f814a3c960f5e256809f/reports/full_multilingual_rag_qwen3_8b_results_20260811.json)，使用其中 CoRAL 与 tCRAG 的 `by_language` 正确题数。来源没有分 benchmark 的 CoRAL 成绩，不能将这里的拆分假设记为 Qwen3-8B 的分 benchmark 实测差值。
+
+Qwen3.5 的其他分项直接取自归档汇总的 `by_dataset_language`；Ministral／Llama 基线同样使用历史汇总中的对应分项。两模型 CA 则由各自 `predictions_all.jsonl` 按 benchmark 与语言重新汇总，逐题核对金标、有效性和正确标记，并核对题数、分 benchmark、分语言及总体计数与已验收的 `summary_all.json` 一致。原始记录位于 `runs/ca_main_ministral3_8b_bytelevel_20261003/` 和 `runs/ca_main_llama3_1_8b_20261003/` 对应的外部归档。
 
 ## Qwen3.5-9B 消融
 
