@@ -173,6 +173,7 @@ def resolve_provider(
     api_key_env_override: str | None = None,
     chat_model_override: str | None = None,
     embedding_model_override: str | None = None,
+    prefer_config_model: bool = False,
 ) -> tuple[ResolvedProvider, str]:
     cwd = Path(cwd).resolve()
     env = dict(os.environ)
@@ -226,16 +227,24 @@ def resolve_provider(
     if key_pair is None:
         auth = provider_config.get("auth") if isinstance(provider_config.get("auth"), dict) else None
         key_pair = _read_config_auth(auth)
+    if key_pair is None:
+        bearer = provider_config.get("experimental_bearer_token")
+        if isinstance(bearer, str) and bearer.strip():
+            key_pair = (f"codex_config_bearer:{config_path}", bearer.strip())
     if key_pair is None or not key_pair[1]:
         raise ProviderResolutionError(
             "Could not resolve API key; checked environment, Codex config auth, and project .env files.",
             checked,
         )
 
+    configured_model = config.get("model") if prefer_config_model else None
+    if not isinstance(configured_model, str) or not configured_model.strip():
+        configured_model = None
     chat_model = (
         chat_model_override
         or merged_env.get("CHAT_MODEL")
         or merged_env.get("QWEN_CHAT_MODEL")
+        or configured_model
         or DEFAULT_CHAT_MODEL
     )
     chat_model_source = (
@@ -243,6 +252,8 @@ def resolve_provider(
         if chat_model_override
         else "environment"
         if merged_env.get("CHAT_MODEL") or merged_env.get("QWEN_CHAT_MODEL")
+        else f"codex_config:{config_path}"
+        if configured_model
         else "default:qwen3.5-9b"
     )
     embedding_model = (

@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from src.utils.hash import stable_hash
+from src.construction.io import write_json
 
 
 @dataclass
@@ -35,7 +36,4 @@ class JsonRequestCache:
     def set(self, key: str, value: dict[str, Any]) -> None:
         if not self.enabled:
             return
-        try:
-            self.path_for(key).write_text(json.dumps(value, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
-        except OSError:
-            return
+        write_json(self.path_for(key), value)

@@ -2,9 +2,15 @@
 
 This repository contains only the corpus-driven Wikipag construction path.
 
+The only supported entry point is `scripts/build_wikipag_application_cards.py`.
+All model stages use Qwen3.5-9B: application generation, solution, self-check,
+card extraction, card review, and at most one repair followed by re-review.
+Do not reintroduce the retired direct-extraction, dataset-driven, or smoke pipelines.
+
 Current scope:
 
 - Build concepts and usage cards from English Wikipag/Wikipedia passages.
+- Synthesize English application questions, solutions, and source-constrained self-checks as intermediate card-construction records. Keep the existing five-field card body unchanged.
 - Treat local Wikipag/FAISS assets and raw source corpora as read-only.
 - Do not write generated outputs into a production database.
 - Do not commit generated data, model caches, logs, vector indexes, or downloaded corpus assets.
@@ -16,5 +22,5 @@ Out of scope for this repository:
 
 - Dataset/evaluation-specific construction.
 - Multilingual data generation.
-- Synthetic assessment generation.
+- Standalone assessment/benchmark generation; intermediate corpus-grounded application records are construction artifacts.
 - Evaluation scripts and outputs.

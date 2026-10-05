@@ -5,12 +5,18 @@ __pycache__/
 .mypy_cache/
 .venv/
 venv/
+*.egg-info/
+build/
+dist/
 
 # Generated construction outputs
 runs/
 artifacts/
+reports/
 logs/
 cache/
+*.log
+*.tmp
 
 # Local data and large indexes
 data/

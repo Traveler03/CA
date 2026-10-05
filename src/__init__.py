@@ -1,1 +1,1 @@
-"""Low-resource Global-MMLU utilities."""
+"""English Wikipag concept-usage card construction."""

@@ -1,2 +1,0 @@
-"""Adapted multilingual RAG baselines."""
-
