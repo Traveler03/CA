@@ -2,6 +2,8 @@
 
 唯一构建入口为 [build_wikipag_application_cards.py](../scripts/build_wikipag_application_cards.py)，当前协议为 `wikipag-application-cards-v3`。固定使用英文 Wikipag passages，先准备来源，再由 **Qwen3.5-9B** 造题、求解、自检、提炼和审核；必要时一次修订再复核。正文保持五字段接口。
 
+本说明适用于后续构建运行。现有 56,579 张卡片及其索引保持冻结，已有实验保留原卡库快照和模型配置的对应关系。新运行的产物与验证记录写入独立目录，不替换现有卡库。
+
 旧构建路径及其专用依赖已从活动源码移出，恢复方式见[仓库整理记录](WORKSPACE.md)。
 
 ## 输出接口保持不变

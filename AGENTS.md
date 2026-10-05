@@ -14,6 +14,8 @@ Current scope:
 - Treat local Wikipag/FAISS assets and raw source corpora as read-only.
 - Do not write generated outputs into a production database.
 - Do not commit generated data, model caches, logs, vector indexes, or downloaded corpus assets.
+- Keep the existing 56,579-card bank and its index frozen. Pipeline maintenance must not rebuild, rewrite, append to, or replace that bank.
+- Keep existing experiment records associated with their actual bank snapshots and model settings. Record new pipeline runs separately from the frozen bank's construction history.
 - Keep every stage resumable by writing stage outputs under a run directory.
 - Cache model responses and retrieval results during construction.
 - Validate JSON/JSONL interfaces before consuming downstream outputs.

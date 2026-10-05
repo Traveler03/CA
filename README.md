@@ -4,6 +4,10 @@
 
 仓库只维护这一套构建流程，唯一入口为 [build_wikipag_application_cards.py](scripts/build_wikipag_application_cards.py)。
 
+现有答题卡库固定为 **56,579 张卡片、57 个学科**。卡库内容和索引保持冻结，已有实验结果继续对应各自实际使用的卡库快照、模型和答题配置。
+
+下述 pipeline 是后续构建所维护的实现。更新构建代码不触发现有卡库重建或实验重跑；新运行仅写入独立目录。现有卡库的构建历史与新 pipeline 的验证记录分别保留。
+
 ```text
 英文 Wikipag passages
   → 片段筛选与同文章材料补充

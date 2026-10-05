@@ -2,6 +2,8 @@
 
 2026-10-05，活动代码统一为 **Qwen3.5-9B 英文 Wikipag 应用记录 → 五字段 card** 流程。唯一构建入口为 `scripts/build_wikipag_application_cards.py`。
 
+用户确认现有答题卡库保持冻结：56,579 张卡片、57 个学科，内容及索引不随构建代码更新。已有实验仍关联各自实际使用的卡库、模型与答题配置；本次切换仅确定后续构建入口。卡库与实验记录的归档只调整存储位置，既有结果不改写为新 pipeline 的验证结果。
+
 ## 本轮清理
 
 从工作目录移出 87 个旧源码、配置、提示词、测试或说明文件，以及 9 个字节码缓存文件，覆盖：
@@ -44,7 +46,7 @@ Qwen 服务已实测联通；单主题构建走完审核、一次修订及复核
 
 ```text
 /home/work/migoo_ai_post-train/linxuan/CA_archive/obsolete_experiments_20261005/
-  runs/                 # 旧实验、历史卡库、缓存及此前的整理记录
+  runs/                 # 既有实验、冻结卡库、缓存及此前的整理记录
   artifacts/            # 旧评测产物及历史资产
   plan.json / moved.json
   verification.json
