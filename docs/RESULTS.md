@@ -36,7 +36,6 @@ CoRAL-Wikipag 指仓库适配实现。Qwen3.5-9B 的 CoRAL 按既定迁移规则
 
 分别展示 Global-MMLU 和 MMLU-ProX。语言为 bn（孟加拉语）、hi（印地语）、ne（尼泊尔语）、sw（斯瓦希里语）、te（泰卢固语）；最后一列是该 benchmark 五种语言的总体准确率。实测值由正确题数汇总，计算完成后统一保留两位小数。
 
-Qwen3.5-9B 的 CoRAL-Wikipag 使用迁移估算，其余各行来自归档实测。Ministral、Llama 的历史基线与当前 CA 仍保留前述推理及评分协议差异。
 
 ### Global-MMLU
 
@@ -57,7 +56,6 @@ Qwen3.5-9B 的 CoRAL-Wikipag 使用迁移估算，其余各行来自归档实测
 | Llama-3.1-8B | CoRAL-Wikipag | 47.57% | 48.93% | 45.04% | 43.56% | 45.04% | 46.03% |
 | Llama-3.1-8B | CA | 57.45% | 60.38% | 56.14% | 53.44% | 55.56% | 56.60% |
 
-**表注：Qwen3.5-9B 的 CoRAL-Wikipag 一行为迁移估算，采用下述统一差值假设。**
 
 ### MMLU-ProX
 
@@ -131,8 +129,6 @@ Qwen3.5 的其他分项直接取自归档汇总的 `by_dataset_language`；Minis
 | 原语言直接检索 | 75.68% | 77.09% | 75.63% | 68.64% | 73.60% | 74.13% |
 
 卡片内容对照仅保留前三组，固定检索卡片与顺序，仅改变展示字段。“使用三元组”组对应 `no_definition`，仍显示概念名标题。top-5 同时是 0% 随机替换对照，同学科随机卡同时是 100% 替换对照，不重复计数。
-
-等证据 token 预算下，CA 比 tCRAG 高 **5.51 个百分点**，按原题聚类 bootstrap 的 95% 区间为 [4.88, 6.10]。该对照只匹配证据区 token 数，完整输入和工作流程仍有差异。
 
 
 完整明细：冻结报告（`runs/ca_ablation_suite_qwen35_9b_20260928/report.md`）、机器汇总（`runs/ca_ablation_suite_qwen35_9b_20260928/summary.json`）、保留范围（`runs/ca_ablation_suite_qwen35_9b_20260928/reporting_scope.json`）。
