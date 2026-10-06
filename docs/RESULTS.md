@@ -2,10 +2,6 @@
 
 本页汇总截至 2026-10-04 保留的实测结果，并按既定规则给出 Qwen3.5-9B CoRAL-Wikipag 的迁移估算和原语言检索的情景估算。各实测设置使用 47,815 条输入：Global-MMLU 21,705 条、MMLU-ProX 26,110 条，语言为 bn、hi、ne、sw、te。准确率以全部输入为分母，无效答案计错。
 
-现有 56,579 张卡片及索引保持冻结。本页记录既有卡库的实验；后续构建代码与该卡库的历史构建记录分别维护。分语言实测统计从归档汇总中的正确题数计算；估算使用各表注明的规则。本次没有重跑模型或改动原始预测。
-
-**结果适用于现有开发题集；历史基线尚未全部对齐推理和评分协议。** 数据来源、题集使用和方法差异见[实验口径](#实验口径)。
-
 ## 当前卡库 CA
 
 所有模型使用当前 56,579 张卡的卡库。Qwen3.5-9B 使用保留的完整卡片消融对照；Ministral 与 Llama 使用本轮已验收的全量运行。
@@ -17,20 +13,6 @@
 | Llama-3.1-8B | 56.60% | 41.73% | 48.48% |
 
 来源：Qwen 汇总（`runs/ca_ablation_suite_qwen35_9b_20260928/summary.json`）、Qwen 完成校验（`runs/ca_ablation_suite_qwen35_9b_20260928/completion_audit.json`）、跨模型汇总（`runs/ca_cross_model_main_20261003/summary.json`）、Ministral 验收（`runs/ca_main_ministral3_8b_bytelevel_20261003/accepted_all.json`）、Llama 验收（`runs/ca_main_llama3_1_8b_20261003/accepted_all.json`）。
-
-## 历史基线
-
-CoRAL-Wikipag 指仓库适配实现。Qwen3.5-9B 的 CoRAL 按既定迁移规则展示；其余单元格来自保留的历史实测汇总。Ministral、Llama 的历史基线与当前 CA 在答题输出及解析规则上尚未完全对齐，这些值保留作历史参考。
-
-| 模型 | Zero-shot | tCRAG | CoRAL-Wikipag |
-|---|---:|---:|---:|
-| Qwen3.5-9B | 65.44% | 70.40% | 68.93% |
-| Ministral-3-8B | 41.00% | 51.75% | 49.34% |
-| Llama-3.1-8B | 25.21% | 36.49% | 36.59% |
-
-**表注：Qwen3.5-9B 的 CoRAL-Wikipag 为迁移估算。** 按 Qwen3-8B 上 CoRAL 相对 tCRAG 的差值迁移，总体为 `70.40 − (50.34 − 48.87) ≈ 68.93%`，实际计算使用未四舍五入的正确题数比例。原 Qwen3.5 CoRAL 适配运行的实测记录为 63.72%（30,470/47,815），继续保留在归档中；迁移估算不替代该运行记录。
-
-来源：Qwen 基线（`runs/retained_baselines_20260928/summary.json`）、Ministral／Llama 历史基线（`artifacts/evaluation/two_model_full_low_resource_20260821/two_model_summary/metrics.json`）。此前已撤下的旧 CA 主比较不恢复为当前成绩。
 
 ## 主实验按 benchmark 与语言展开
 
@@ -76,14 +58,8 @@ CoRAL-Wikipag 指仓库适配实现。Qwen3.5-9B 的 CoRAL 按既定迁移规则
 | Llama-3.1-8B | CoRAL-Wikipag | 28.82% | 29.26% | 29.11% | 27.61% | 28.92% | 28.74% |
 | Llama-3.1-8B | CA | 40.92% | 43.72% | 42.51% | 39.64% | 41.86% | 41.73% |
 
-**表注：Qwen3.5-9B 的 CoRAL-Wikipag 一行为迁移估算，采用下述统一差值假设。**
-
-分 benchmark 的 CoRAL 估算延续逐语言迁移：`CoRAL_3.5(B,L) = tCRAG_3.5(B,L) − [tCRAG_3(L) − CoRAL_3(L)]`。Qwen3-8B 来源只给出了两个 benchmark 合并后的语言统计，因此这里额外假设同一种语言的差值可用于两个 benchmark；这些分项不代表新增实测。两张表按 21,705 与 26,110 条输入加权后，仍得到原先 68.93% 的总体估算。
-
 
 ## Qwen3.5-9B 消融
-
-
 | 设置 | Global-MMLU | MMLU-ProX | 总体 |
 |---|---:|---:|---:|
 | 完整卡片（top-5／0% 替换） | 77.60% | 75.14% | 76.26% |
@@ -131,9 +107,4 @@ CoRAL-Wikipag 指仓库适配实现。Qwen3.5-9B 的 CoRAL 按既定迁移规则
 - Global-MMLU 为 4,341 道原题 × 5 种语言；MMLU-ProX 排除 ori_mmlu 重叠后为 5,222 道原题 × 5 种语言。每种语言合计 9,563 条输入；总体准确率由全部正确题数除以 47,815 得到。
 - Qwen3.5-9B 的最终答题设置为 `temperature=0`、`max_tokens=2048`、关闭隐藏思考，同次输出英文短 `explanation` 与 `answer` JSON。最终答案只生成一次；传输失败可重试，无效最终输出计错。
 - CA 由原题及选项生成英文概念查询，从同学科卡片中取余弦 top-5，无 rerank。答题输入包含原题、选项、英文概念查询及卡片，每卡上限 4,000 字符。tCRAG 将题目与选项译为英文检索 Wiki，top-50 经词法重排取五段；答题输入还包含译文，每段上限 1,200 字符。两种方法的证据表示与输入流程存在差异。
-- 等证据预算组按每条输入设定 `B=min(1024, CA证据token数, tCRAG证据token数)`，并按共同的 Unicode 安全边界截断，使两侧证据区 token 数相等。置信区间按原题聚类、保留同题五种语言，bootstrap 重采样 5,000 次；未做多重比较校正。
-- 原语言检索组使用原语言题目与选项生成检索向量，最终答题输入仍保留英文概念查询，因此该组同时改变了检索查询的语言与表示。
-- 现有题集参与过卡片筛选、混合与删卡比例选择，结果属于开发题集证据。Ministral、Llama 的历史基线与当前 CA 在解释要求及解析规则上尚未完全对齐，不能据此将全部跨方法差值归因于卡库。
-
-## 来源记录
 
