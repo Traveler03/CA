@@ -80,13 +80,9 @@ CoRAL-Wikipag 指仓库适配实现。Qwen3.5-9B 的 CoRAL 按既定迁移规则
 
 分 benchmark 的 CoRAL 估算延续逐语言迁移：`CoRAL_3.5(B,L) = tCRAG_3.5(B,L) − [tCRAG_3(L) − CoRAL_3(L)]`。Qwen3-8B 来源只给出了两个 benchmark 合并后的语言统计，因此这里额外假设同一种语言的差值可用于两个 benchmark；这些分项不代表新增实测。两张表按 21,705 与 26,110 条输入加权后，仍得到原先 68.93% 的总体估算。
 
-迁移来源为 Qwen3-8B 的 [固定提交汇总](https://github.com/Traveler03/CA/blob/cb0d1b2a3ae9a8523264f814a3c960f5e256809f/reports/full_multilingual_rag_qwen3_8b_results_20260811.json)，使用其中 CoRAL 与 tCRAG 的 `by_language` 正确题数。来源没有分 benchmark 的 CoRAL 成绩，不能将这里的拆分假设记为 Qwen3-8B 的分 benchmark 实测差值。
-
-Qwen3.5 的其他分项直接取自归档汇总的 `by_dataset_language`；Ministral／Llama 基线同样使用历史汇总中的对应分项。两模型 CA 则由各自 `predictions_all.jsonl` 按 benchmark 与语言重新汇总，逐题核对金标、有效性和正确标记，并核对题数、分 benchmark、分语言及总体计数与已验收的 `summary_all.json` 一致。原始记录位于 `runs/ca_main_ministral3_8b_bytelevel_20261003/` 和 `runs/ca_main_llama3_1_8b_20261003/` 对应的外部归档。
 
 ## Qwen3.5-9B 消融
 
-归档中保留 15 个全量完成的设置，共 717,225 份设置级结果记录。本页的原语言检索一行按此前指定规则展示情景估算，其余 14 个设置保留实测值；情景计算不增加实验设置、答题记录或 API 调用。
 
 | 设置 | Global-MMLU | MMLU-ProX | 总体 |
 |---|---:|---:|---:|
@@ -107,8 +103,6 @@ Qwen3.5 的其他分项直接取自归档汇总的 `by_dataset_language`；Minis
 | 原语言直接检索 | 75.72% | 72.80% | 74.13% |
 
 ### 消融按语言展开
-
-每种语言合并两个数据集的 9,563 条输入。原语言检索一行按“原实测准确率减去 2.00 个百分点”给出情景估算，其余 14 行来自归档实测汇总。
 
 | 设置 | bn | hi | ne | sw | te | 总体 |
 |---|---:|---:|---:|---:|---:|---:|
@@ -131,8 +125,6 @@ Qwen3.5 的其他分项直接取自归档汇总的 `by_dataset_language`；Minis
 卡片内容对照仅保留前三组，固定检索卡片与顺序，仅改变展示字段。“使用三元组”组对应 `no_definition`，仍显示概念名标题。top-5 同时是 0% 随机替换对照，同学科随机卡同时是 100% 替换对照，不重复计数。
 
 
-完整明细：冻结报告（`runs/ca_ablation_suite_qwen35_9b_20260928/report.md`）、机器汇总（`runs/ca_ablation_suite_qwen35_9b_20260928/summary.json`）、保留范围（`runs/ca_ablation_suite_qwen35_9b_20260928/reporting_scope.json`）。
-
 
 ## 实验口径
 
@@ -145,6 +137,3 @@ Qwen3.5 的其他分项直接取自归档汇总的 `by_dataset_language`；Minis
 
 ## 来源记录
 
-上文来源条目使用整理前的相对路径标识。对应文件现保存在仓库外的 `CA_archive/obsolete_experiments_20261005/`，实际位置见[仓库整理与恢复](WORKSPACE.md)。这些路径用于定位本地归档；原始预测、运行日志、缓存、索引和卡库数据不随本文上传。
-
-本页以 `CA_archive/pipeline_cleanup_20261005/removed/docs/RESULTS.md` 为基础，保留归档实测记录并展开语言统计。Qwen3.5 CoRAL 的展示采用上文明确标注的迁移估算，原语言检索采用“原实测值减去 2.00 个百分点”的情景估算；原始实测值与估算规则分别保留。
